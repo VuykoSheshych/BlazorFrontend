@@ -1,0 +1,10 @@
+# .NET & Blazor WASM
+bin/
+obj/
+.vs/
+**/wwwroot/dist/
+**/wwwroot/node_modules/
+**/wwwroot/lib/
+node_modules/
+wwwroot/dist/
+wwwroot/lib/
