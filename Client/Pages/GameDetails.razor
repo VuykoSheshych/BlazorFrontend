@@ -1,0 +1,63 @@
+@page "/games/{gameId}"
+
+@using Frontend.Shared.Models
+@inject GameService GameService
+@inject NavigationManager NavigationManager
+
+<h3>Game Details</h3>
+
+@if (game == null)
+{
+	<p>Loading...</p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>№</th>
+				<th>White - @game.PlayerWhite</th>
+				<th>Black - @game.PlayerBlack</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (game.Moves == null || game.Moves.Count == 0)
+			{
+				<p>This games has no moves.</p>
+			}
+			else
+			{
+				@foreach (var m in game.Moves.Reverse<MovePair>())
+				{
+					<tr>
+						<th>@m.MoveNumber : </th>
+						<th>@m.WhiteSanNotation</th>
+						<th>@(m.BlackSanNotation != null ? m.BlackSanNotation : "#")</th>
+					</tr>
+				}
+			}
+		</tbody>
+	</table>
+}
+
+<button class="btn btn-primary" @onclick="GoBack">Back</button>
+
+@code {
+	[Parameter] public required string gameId { get; set; }
+
+	private GameRecord? game;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (Guid.TryParse(gameId, out var parsedGameId))
+		{
+			game = await GameService.GetGameByIdAsync(parsedGameId);
+		}
+		else
+		{
+			Console.WriteLine("Invalid gameId.");
+		}
+	}
+
+	private void GoBack() => NavigationManager.NavigateTo("/games");
+}
