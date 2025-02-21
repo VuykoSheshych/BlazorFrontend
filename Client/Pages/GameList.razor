@@ -1,15 +1,18 @@
 @page "/games"
-@inject GameService GameService
 
-<h3>Список шахових партій</h3>
+@using Frontend.Shared.Models
+@inject GameService GameService
+@inject NavigationManager NavigationManager
+
+<h3>Chess games list</h3>
 
 @if (games == null)
 {
-	<p>Завантаження...</p>
+	<p>Loading...</p>
 }
 else if (games.Count == 0)
 {
-	<p>Немає партій.</p>
+	<p>No games.</p>
 }
 else
 {
@@ -17,17 +20,19 @@ else
 		<thead>
 			<tr>
 				<th>ID</th>
-				<th>Білий</th>
-				<th>Чорний</th>
-				<th>Результат</th>
-				<th>Дата</th>
+				<th>White</th>
+				<th>Black</th>
+				<th>Result</th>
+				<th>Date</th>
 			</tr>
 		</thead>
 		<tbody>
 			@foreach (var game in games)
 			{
 				<tr>
-					<td>@game.Id</td>
+					<td>
+						<a href="games/@game.Id">@game.Id</a>
+					</td>
 					<td>@game.PlayerWhite</td>
 					<td>@game.PlayerBlack</td>
 					<td>@game.Result</td>
@@ -40,7 +45,6 @@ else
 
 @code {
 	private List<GameRecord>? games;
-
 	protected override async Task OnInitializedAsync()
 	{
 		games = await GameService.GetGamesAsync();
