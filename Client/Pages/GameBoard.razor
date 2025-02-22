@@ -1,0 +1,34 @@
+@page "/game/active/{gameId}"
+@attribute [Authorize]
+@inject GameHubClient GameHubClient
+@code {
+	[Parameter] public string? GameId { get; set; }
+	private GameSession? gameSession;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (GameId is not null)
+		{
+			GameHubClient.OnGameStateReceived += state => { gameSession = state; StateHasChanged(); };
+			GameHubClient.OnMoveReceived += move => { /* Оновити UI */ };
+
+			await GameHubClient.ConnectAsync();
+			await GameHubClient.JoinGame(GameId);
+		}
+	}
+
+	private async Task MakeMove(string from, string to)
+	{
+		if (GameId is not null)
+		{
+			var move = new MoveDto { From = from, To = to, Player = "white" }; // Замінити логікою
+			await GameHubClient.MakeMove(GameId, move);
+		}
+	}
+
+	public void Dispose()
+	{
+		GameHubClient.OnGameStateReceived -= state => { gameSession = state; StateHasChanged(); };
+		GameHubClient.OnMoveReceived -= move => { /* Оновити UI */ };
+	}
+}

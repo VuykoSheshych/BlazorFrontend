@@ -42,7 +42,8 @@ else
 
 <button class="btn btn-primary" @onclick="GoBack">Back</button>
 
-@code {
+@code
+{
 	[Parameter] public required string gameId { get; set; }
 
 	private GameRecord? game;
