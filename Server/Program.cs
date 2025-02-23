@@ -12,6 +12,8 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
 	options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
 	.AddEntityFrameworkStores<IdentityDbContext>();
 
@@ -31,6 +33,8 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseMigrationsEndPoint();
 	app.UseWebAssemblyDebugging();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 else
 {
