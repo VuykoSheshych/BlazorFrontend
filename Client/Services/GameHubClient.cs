@@ -13,7 +13,7 @@ public class GameHubClient
 	public GameHubClient(NavigationManager navigationManager)
 	{
 		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(navigationManager.ToAbsoluteUri("https://gameHub"))
+			.WithUrl(navigationManager.ToAbsoluteUri("https://localhost:7251/gameHub"))
 			.WithAutomaticReconnect()
 			.Build();
 
@@ -29,6 +29,16 @@ public class GameHubClient
 		}
 	}
 
+	public async Task<string> CreateGameAsync(string player1, string player2)
+	{
+		if (_hubConnection is not null)
+		{
+			return await _hubConnection.InvokeAsync<string>("CreateGame", player1, player2);
+		}
+
+		throw new InvalidOperationException("SignalR is not connected!");
+	}
+
 	public async Task JoinGame(string gameId)
 	{
 		await _hubConnection.InvokeAsync("JoinGame", gameId);
@@ -42,6 +52,11 @@ public class GameHubClient
 	public async Task LeaveGame(string gameId)
 	{
 		await _hubConnection.InvokeAsync("LeaveGame", gameId);
+	}
+
+	public async Task FinishGame(string gameId, string result)
+	{
+		await _hubConnection.InvokeAsync("FinishGame", gameId, result);
 	}
 
 	public async Task DisconnectAsync()

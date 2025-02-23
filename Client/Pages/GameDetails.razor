@@ -27,12 +27,12 @@ else
 			}
 			else
 			{
-				@foreach (var m in game.Moves.Reverse<MovePair>())
+				@for (int i = 1; i < game.Moves.Count(); i += 2)
 				{
 					<tr>
-						<th>@m.MoveNumber : </th>
-						<th>@m.WhiteSanNotation</th>
-						<th>@(m.BlackSanNotation != null ? m.BlackSanNotation : "#")</th>
+						<th>@game.Moves[i].MoveNumber : </th>
+						<th>@game.Moves[i].SanNotation</th>
+						<th>@(game.Moves[i + 1].SanNotation != null ? game.Moves[i + 1].SanNotation : "#")</th>
 					</tr>
 				}
 			}

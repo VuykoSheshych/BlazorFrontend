@@ -1,28 +1,84 @@
 @page "/game/active/{gameId}"
 @attribute [Authorize]
 @inject GameHubClient GameHubClient
+
+<h3>Гра: @gameId</h3>
+
+@if (gameSession is not null)
+{
+	<p>Білими: @gameSession.PlayerWhite</p>
+	<p>Чорними: @gameSession.PlayerBlack</p>
+	<p>Поточний стан: @gameSession.CurrentFen</p>
+
+	@foreach (var move in gameSession.Moves)
+	{
+		<p>@move.SanNotation</p>
+	}
+
+	<p>@gameSession.Result</p>
+
+	<h4>Ручне створення ходу:</h4>
+	@foreach (var move in testMoves)
+	{
+		<button @onclick="() => MakeMove(move.From, move.To, move.Player)">
+			@($"{move.From} → {move.To}")
+		</button>
+	}
+
+	<h4>Результат:</h4>
+	@foreach (var r in results)
+	{
+		<button @onclick="() => FinishGame(r)">@($"{r}")</button>
+	}
+}
+else
+{
+	<p>Завантаження гри...</p>
+}
+
 @code {
-	[Parameter] public string? GameId { get; set; }
+	[Parameter] public string? gameId { get; set; }
 	private GameSession? gameSession;
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (GameId is not null)
+		if (gameId is not null)
 		{
 			GameHubClient.OnGameStateReceived += state => { gameSession = state; StateHasChanged(); };
 			GameHubClient.OnMoveReceived += move => { /* Оновити UI */ };
 
 			await GameHubClient.ConnectAsync();
-			await GameHubClient.JoinGame(GameId);
+			await GameHubClient.JoinGame(gameId);
+		}
+	}
+	private List<MoveDto> testMoves = new()
+{
+new MoveDto { From = "e2", To = "e4", Player = "white" },
+new MoveDto { From = "e7", To = "e5", Player = "black" },
+new MoveDto { From = "g1", To = "f3", Player = "white" },
+};
+
+	private List<string> results = new()
+{
+"1 0",
+"0 1",
+"0.5 0.5"
+};
+
+	private async Task MakeMove(string from, string to, string player)
+	{
+		if (gameId is not null)
+		{
+			var move = new MoveDto { From = from, To = to, Player = player }; // Замінити логікою
+			await GameHubClient.MakeMove(gameId, move);
 		}
 	}
 
-	private async Task MakeMove(string from, string to)
+	private async Task FinishGame(string result)
 	{
-		if (GameId is not null)
+		if (gameId is not null)
 		{
-			var move = new MoveDto { From = from, To = to, Player = "white" }; // Замінити логікою
-			await GameHubClient.MakeMove(GameId, move);
+			await GameHubClient.FinishGame(gameId, result);
 		}
 	}
 
