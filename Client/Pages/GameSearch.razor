@@ -1,0 +1,78 @@
+@page "/game/search"
+
+@attribute [Authorize]
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject GameHubClient GameHubClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<h3>Пошук гри</h3>
+
+<button @onclick="() => StartGameSearch()">Почати пошук</button>
+
+<button @onclick="() => TerminateGameSearch()">Припинити пошук</button>
+
+@if (isSearching)
+{
+	<p>Шукаємо пару для гри...</p>
+}
+
+@code {
+	private List<string> users = new List<string>();
+	private string currentUser = string.Empty;
+	private DotNetObjectReference<GameSearch>? objRef;
+	private bool isSearching = false;
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		currentUser = authState.User.Identity?.Name ?? string.Empty;
+
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			objRef = DotNetObjectReference.Create(this);
+			await JSRuntime.InvokeVoidAsync("addBeforeUnloadListener", objRef);
+		}
+		GameHubClient.OnGameFound += OnGameFound;
+	}
+
+	[JSInvokable]
+	public async Task TerminateGameSearch()
+	{
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			await GameHubClient.TerminateGameSearch(currentUser);
+			isSearching = false;
+		}
+	}
+	private async Task StartGameSearch()
+	{
+		isSearching = true;
+
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			await GameHubClient.Connect();
+			await GameHubClient.StartSearch(currentUser);
+		}
+	}
+	private void OnGameFound(string gameId)
+	{
+		isSearching = false;
+		StateHasChanged();
+		Console.WriteLine($"Navigating to game {gameId}");
+
+		NavigationManager.NavigateTo($"/game/active/{gameId}");
+	}
+	private void StartGame(string gameId)
+	{
+		NavigationManager.NavigateTo($"/game/active/{gameId}");
+	}
+	public void Dispose()
+	{
+		objRef?.Dispose();
+		if (GameHubClient != null)
+		{
+			GameHubClient.OnGameFound -= OnGameFound;
+		}
+	}
+}
