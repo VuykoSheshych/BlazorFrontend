@@ -1,4 +1,5 @@
 @page "/game/active/{gameId}"
+
 @attribute [Authorize]
 @inject GameHubClient GameHubClient
 
@@ -44,12 +45,36 @@ else
 	{
 		if (gameId is not null)
 		{
-			GameHubClient.OnGameStateReceived += state => { gameSession = state; StateHasChanged(); };
-			GameHubClient.OnMoveReceived += move => { /* Оновити UI */ };
+			GameHubClient.OnGameStateReceived += OnGameStateReceived;
+			GameHubClient.OnMoveReceived += OnMoveReceived;
 
-			await GameHubClient.ConnectAsync();
-			await GameHubClient.JoinGame(gameId);
+			await GameHubClient.Connect();
+
+			LoadGameState();
 		}
+	}
+	private void LoadGameState()
+	{
+		if (gameId is not null)
+		{
+			var state = new GameSession() { Id = gameId };
+			if (state != null)
+			{
+				gameSession = state;
+				StateHasChanged();
+			}
+		}
+	}
+	private void OnGameStateReceived(GameSession state)
+	{
+		gameSession = state;
+		StateHasChanged();
+	}
+	private void OnMoveReceived(MoveDto move)
+	{
+		// Оновити UI або стан гри після отримання ходу
+		// Можна додати логіку для оновлення відповідного ходу в gameSession
+		StateHasChanged();
 	}
 	private List<MoveDto> testMoves = new()
 {
@@ -84,7 +109,7 @@ new MoveDto { From = "g1", To = "f3", Player = "white" },
 
 	public void Dispose()
 	{
-		GameHubClient.OnGameStateReceived -= state => { gameSession = state; StateHasChanged(); };
-		GameHubClient.OnMoveReceived -= move => { /* Оновити UI */ };
+		GameHubClient.OnGameStateReceived -= OnGameStateReceived;
+		GameHubClient.OnMoveReceived -= OnMoveReceived;
 	}
 }
