@@ -11,11 +11,6 @@
 	<p>Чорними: @gameSession.PlayerBlack</p>
 	<p>Поточний стан: @gameSession.CurrentFen</p>
 
-	@foreach (var move in gameSession.Moves)
-	{
-		<p>@move.SanNotation</p>
-	}
-
 	<p>@gameSession.Result</p>
 
 	<h4>Ручне створення ходу:</h4>
@@ -30,6 +25,11 @@
 	@foreach (var r in results)
 	{
 		<button @onclick="() => FinishGame(r)">@($"{r}")</button>
+	}
+
+	@foreach (var move in gameSession.Moves)
+	{
+		<p>@move.SanNotation</p>
 	}
 }
 else
@@ -49,20 +49,6 @@ else
 			GameHubClient.OnMoveReceived += OnMoveReceived;
 
 			await GameHubClient.Connect();
-
-			LoadGameState();
-		}
-	}
-	private void LoadGameState()
-	{
-		if (gameId is not null)
-		{
-			var state = new GameSession() { Id = gameId };
-			if (state != null)
-			{
-				gameSession = state;
-				StateHasChanged();
-			}
 		}
 	}
 	private void OnGameStateReceived(GameSession state)

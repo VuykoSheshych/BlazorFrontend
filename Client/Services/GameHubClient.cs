@@ -20,25 +20,10 @@ public class GameHubClient
 			.WithAutomaticReconnect()
 			.Build();
 
-		_hubConnection.StartAsync().ContinueWith(task =>
-		{
-			if (task.IsFaulted)
-			{
-				Console.WriteLine("Error starting connection: " + task.Exception?.Message);
-			}
-			else
-			{
-				Console.WriteLine("Connection started successfully");
-			}
-		});
-
-		_hubConnection.On<string>("GameFound", gameId =>
-		{
-			Console.WriteLine($"Game found: {gameId}");
-			OnGameFound?.Invoke(gameId);
-		});
 		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
 		_hubConnection.On<MoveDto>("ReceiveMove", move => OnMoveReceived?.Invoke(move));
+		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
+
 		_hubConnection.Closed += async (exception) =>
 		{
 			var user = await GetCurrentUserAsync();
