@@ -2,6 +2,9 @@
 
 @attribute [Authorize]
 @inject GameHubClient GameHubClient
+@inject MudBlazor.ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <h3>Гра: @gameId</h3>
 
@@ -11,22 +14,32 @@
 	<p>Чорними: @gameSession.PlayerBlack</p>
 	<p>Поточний стан: @gameSession.CurrentFen</p>
 
+	<h4>Ручне створення ходу:</h4>
+	<div>
+		<p>Андерсен – Кізерицький, 1851</p>
+		@foreach (var move in immortalGameMoves)
+		{
+			<button @onclick="() => MakeMove(move.From, move.To)">
+				@($"{move.From} → {move.To}")
+			</button>
+		}
+	</div>
+	<div>
+		<p>Фішер – Бірн, 1956</p>
+		@foreach (var move in gameOfTheCenturyMoves)
+		{
+			<button @onclick="() => MakeMove(move.From, move.To)">
+				@($"{move.From} → {move.To}")
+			</button>
+		}
+	</div>
+
 	@foreach (var move in gameSession.Moves)
 	{
 		<p>@move.SanNotation</p>
 	}
 
-	<p>@gameSession.Result</p>
-
-	<h4>Ручне створення ходу:</h4>
-	@foreach (var move in testMoves)
-	{
-		<button @onclick="() => MakeMove(move.From, move.To, move.Player)">
-			@($"{move.From} → {move.To}")
-		</button>
-	}
-
-	<h4>Результат:</h4>
+	<h4>Результат: @gameSession.Result</h4>
 	@foreach (var r in results)
 	{
 		<button @onclick="() => FinishGame(r)">@($"{r}")</button>
@@ -40,29 +53,14 @@ else
 @code {
 	[Parameter] public string? gameId { get; set; }
 	private GameSession? gameSession;
-
 	protected override async Task OnInitializedAsync()
 	{
 		if (gameId is not null)
 		{
-			GameHubClient.OnGameStateReceived += OnGameStateReceived;
-			GameHubClient.OnMoveReceived += OnMoveReceived;
-
 			await GameHubClient.Connect();
 
-			LoadGameState();
-		}
-	}
-	private void LoadGameState()
-	{
-		if (gameId is not null)
-		{
-			var state = new GameSession() { Id = gameId };
-			if (state != null)
-			{
-				gameSession = state;
-				StateHasChanged();
-			}
+			GameHubClient.OnGameStateReceived += OnGameStateReceived;
+			GameHubClient.OnMoveReceived += OnMoveReceived;
 		}
 	}
 	private void OnGameStateReceived(GameSession state)
@@ -76,13 +74,6 @@ else
 		// Можна додати логіку для оновлення відповідного ходу в gameSession
 		StateHasChanged();
 	}
-	private List<MoveDto> testMoves = new()
-{
-new MoveDto { From = "e2", To = "e4", Player = "white" },
-new MoveDto { From = "e7", To = "e5", Player = "black" },
-new MoveDto { From = "g1", To = "f3", Player = "white" },
-};
-
 	private List<string> results = new()
 {
 "1 0",
@@ -90,11 +81,11 @@ new MoveDto { From = "g1", To = "f3", Player = "white" },
 "0.5 0.5"
 };
 
-	private async Task MakeMove(string from, string to, string player)
+	private async Task MakeMove(string from, string to)
 	{
 		if (gameId is not null)
 		{
-			var move = new MoveDto { From = from, To = to, Player = player }; // Замінити логікою
+			var move = new MoveDto { From = from, To = to }; // Замінити логікою
 			await GameHubClient.MakeMove(gameId, move);
 		}
 	}
@@ -104,6 +95,11 @@ new MoveDto { From = "g1", To = "f3", Player = "white" },
 		if (gameId is not null)
 		{
 			await GameHubClient.FinishGame(gameId, result);
+
+			var options = new DialogOptions { CloseOnEscapeKey = false };
+			var parameters = new DialogParameters { ["Result"] = result };
+
+			await DialogService.ShowAsync<FinishGameDialog>("Гра завершена", parameters, options);
 		}
 	}
 
@@ -112,4 +108,109 @@ new MoveDto { From = "g1", To = "f3", Player = "white" },
 		GameHubClient.OnGameStateReceived -= OnGameStateReceived;
 		GameHubClient.OnMoveReceived -= OnMoveReceived;
 	}
+	private List<MoveDto> immortalGameMoves =
+	[
+	new MoveDto { From = "e2", To = "e4" },
+new MoveDto { From = "e7", To = "e5" },
+new MoveDto { From = "f2", To = "f4" },
+new MoveDto { From = "e5", To = "f4" },
+new MoveDto { From = "f1", To = "c4" },
+new MoveDto { From = "d8", To = "h4" },
+new MoveDto { From = "e1", To = "f1" },
+new MoveDto { From = "b7", To = "b5" },
+new MoveDto { From = "c4", To = "b5" },
+new MoveDto { From = "g8", To = "f6" },
+new MoveDto { From = "g1", To = "f3" },
+new MoveDto { From = "h4", To = "h6" },
+new MoveDto { From = "d2", To = "d3" },
+new MoveDto { From = "g8", To = "h5" },
+new MoveDto { From = "h2", To = "h4" },
+new MoveDto { From = "h6", To = "g5" },
+new MoveDto { From = "f3", To = "f5" },
+new MoveDto { From = "c7", To = "c6" },
+new MoveDto { From = "g2", To = "g4" },
+new MoveDto { From = "h5", To = "f6" },
+new MoveDto { From = "h1", To = "g1" },
+new MoveDto { From = "c6", To = "b5" },
+new MoveDto { From = "h4", To = "h5" },
+new MoveDto { From = "g5", To = "g4" },
+new MoveDto { From = "d1", To = "f3" },
+new MoveDto { From = "f6", To = "g8" },
+new MoveDto { From = "c1", To = "f4" },
+new MoveDto { From = "d8", To = "f6" },
+new MoveDto { From = "b1", To = "c3" },
+new MoveDto { From = "f8", To = "c5" },
+new MoveDto { From = "c3", To = "d5" },
+new MoveDto { From = "f6", To = "b2" },
+new MoveDto { From = "f4", To = "d6" },
+new MoveDto { From = "c5", To = "g1" },
+new MoveDto { From = "d6", To = "e5" },
+new MoveDto { From = "b2", To = "a1" },
+new MoveDto { From = "e5", To = "d7" },
+new MoveDto { From = "g1", To = "f2" },
+new MoveDto { From = "f3", To = "f6" },
+new MoveDto { From = "g8", To = "f6" },
+new MoveDto { From = "d7", To = "e7" }
+	];
+
+	private List<MoveDto> gameOfTheCenturyMoves =
+	[
+	new MoveDto { From = "g1", To = "f3" },
+new MoveDto { From = "g8", To = "f6" },
+new MoveDto { From = "c2", To = "c4" },
+new MoveDto { From = "g7", To = "g6" },
+new MoveDto { From = "b1", To = "c3" },
+new MoveDto { From = "f8", To = "g7" },
+new MoveDto { From = "d2", To = "d4" },
+new MoveDto { From = "e8", To = "g8" },
+new MoveDto { From = "c1", To = "f4" },
+new MoveDto { From = "d7", To = "d5" },
+new MoveDto { From = "d1", To = "b3" },
+new MoveDto { From = "d5", To = "c4" },
+new MoveDto { From = "b3", To = "c4" },
+new MoveDto { From = "c7", To = "c6" },
+new MoveDto { From = "e2", To = "e4" },
+new MoveDto { From = "b8", To = "d7" },
+new MoveDto { From = "f1", To = "d3" },
+new MoveDto { From = "d7", To = "b6" },
+new MoveDto { From = "c4", To = "c5" },
+new MoveDto { From = "c8", To = "g4" },
+new MoveDto { From = "c1", To = "e3" },
+new MoveDto { From = "d8", To = "b6" },
+new MoveDto { From = "b5", To = "a4" },
+new MoveDto { From = "b2", To = "b3" },
+new MoveDto { From = "b6", To = "b2" },
+new MoveDto { From = "e1", To = "g1" },
+new MoveDto { From = "h7", To = "h6" },
+new MoveDto { From = "d3", To = "g6" },
+new MoveDto { From = "c5", To = "d7" },
+new MoveDto { From = "g6", To = "f7" },
+new MoveDto { From = "f7", To = "e6" },
+new MoveDto { From = "d7", To = "e7" },
+new MoveDto { From = "e7", To = "d8" },
+new MoveDto { From = "d8", To = "e8" },
+new MoveDto { From = "e8", To = "e6" },
+new MoveDto { From = "e6", To = "e7" },
+new MoveDto { From = "e7", To = "e8" },
+new MoveDto { From = "e8", To = "e6" },
+new MoveDto { From = "e6", To = "e7" },
+new MoveDto { From = "e7", To = "e8" },
+new MoveDto { From = "e8", To = "d8" },
+new MoveDto { From = "d8", To = "c8" },
+new MoveDto { From = "c8", To = "d7" },
+new MoveDto { From = "d7", To = "e8" },
+new MoveDto { From = "e8", To = "d8" },
+new MoveDto { From = "d8", To = "c8" },
+new MoveDto { From = "c8", To = "d7" },
+new MoveDto { From = "d7", To = "e8" },
+new MoveDto { From = "e8", To = "f7" },
+new MoveDto { From = "f7", To = "g8" },
+new MoveDto { From = "g8", To = "h7" },
+new MoveDto { From = "h7", To = "h8" },
+new MoveDto { From = "h8", To = "h7" },
+new MoveDto { From = "h7", To = "h8" },
+new MoveDto { From = "h8", To = "g8" },
+new MoveDto { From = "g8", To = "h8" },
+new MoveDto { From = "h8", To = "g8" }
+	];
 }
