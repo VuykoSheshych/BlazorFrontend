@@ -1,0 +1,25 @@
+@inject NavigationManager NavigationManager
+@inject MudBlazor.IDialogService DialogService
+
+<MudDialog>
+	<TitleContent>Гра завершена</TitleContent>
+	<DialogContent>
+		<p>Результат: @Result</p>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="GoToSearch" Color="Color.Primary">Шукати нову гру</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+	[Parameter] public string? Result { get; set; }
+	private void GoToSearch()
+	{
+		if (MudDialog != null)
+		{
+			MudDialog.Close();
+		}
+		NavigationManager.NavigateTo("/game/search");
+	}
+}
