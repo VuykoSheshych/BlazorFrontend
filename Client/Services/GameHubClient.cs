@@ -10,8 +10,8 @@ public class GameHubClient
 	private readonly HubConnection _hubConnection;
 	public event Action<GameSession>? OnGameStateReceived;
 	public event Action<MoveDto>? OnMoveReceived;
-	public event Action<string>? OnGameFinished;
 	public event Action<string>? OnGameFound;
+	public event Func<string, Task>? OnGameFinished;
 	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
 	{
 		_authenticationStateProvider = authenticationStateProvider;
@@ -24,7 +24,13 @@ public class GameHubClient
 		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
 		_hubConnection.On<MoveDto>("ReceiveMove", move => OnMoveReceived?.Invoke(move));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
-		_hubConnection.On<string>("FinishGame", result => OnGameFinished?.Invoke(result));
+		_hubConnection.On<string>("GameFinished", async result =>
+		{
+			if (OnGameFinished != null)
+			{
+				await OnGameFinished.Invoke(result);
+			}
+		});
 		_hubConnection.Closed += async (exception) =>
 		{
 			var user = await GetCurrentUserAsync();

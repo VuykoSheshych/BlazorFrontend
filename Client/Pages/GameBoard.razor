@@ -19,31 +19,33 @@
 		<p>Андерсен – Кізерицький, 1851</p>
 		@foreach (var move in immortalGameMoves)
 		{
-			<button @onclick="() => MakeMove(move.From, move.To)">
+			<MudButton Variant="Variant.Outlined" @onclick="() => MakeMove(move.From, move.To)">
 				@($"{move.From} → {move.To}")
-			</button>
+			</MudButton>
 		}
 	</div>
 	<div>
 		<p>Фішер – Бірн, 1956</p>
 		@foreach (var move in gameOfTheCenturyMoves)
 		{
-			<button @onclick="() => MakeMove(move.From, move.To)">
+			<MudButton Variant="Variant.Outlined" @onclick="() => MakeMove(move.From, move.To)">
 				@($"{move.From} → {move.To}")
-			</button>
+			</MudButton>
 		}
 	</div>
-
-	@foreach (var move in gameSession.Moves)
-	{
-		<p>@move.SanNotation</p>
-	}
 
 	<h4>Результат: @gameSession.Result</h4>
 	@foreach (var r in results)
 	{
-		<button @onclick="() => FinishGame(r)">@($"{r}")</button>
+		<MudButton Variant="Variant.Outlined" @onclick="() => FinishGame(r)">@($"{r}")</MudButton>
 	}
+
+	<div>
+		@foreach (var move in gameSession.Moves)
+		{
+			<p>@move.SanNotation</p>
+		}
+	</div>
 }
 else
 {
