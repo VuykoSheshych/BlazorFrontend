@@ -32,7 +32,7 @@ else
 					<tr>
 						<th>@game.Moves[i].MoveNumber : </th>
 						<th>@game.Moves[i].SanNotation</th>
-						<th>@(game.Moves[i + 1].SanNotation != null ? game.Moves[i + 1].SanNotation : "#")</th>
+						<th>@(i + 1 < game.Moves.Count() ? game.Moves[i + 1].SanNotation : "#")</th>
 					</tr>
 				}
 			}
