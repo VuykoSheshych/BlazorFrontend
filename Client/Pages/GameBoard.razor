@@ -63,6 +63,7 @@ else
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveReceived += OnMoveReceived;
+			GameHubClient.OnGameFinished += OnGameFinished;
 		}
 	}
 	private void OnGameStateReceived(GameSession state)
@@ -75,6 +76,18 @@ else
 		// Оновити UI або стан гри після отримання ходу
 		// Можна додати логіку для оновлення відповідного ходу в gameSession
 		StateHasChanged();
+	}
+	private Task OnGameFinished(string result)
+	{
+		var options = new DialogOptions
+		{
+			CloseOnEscapeKey = false,
+			BackdropClick = false,
+			Position = DialogPosition.TopCenter
+		};
+		var parameters = new DialogParameters { ["Result"] = result };
+
+		return DialogService.ShowAsync<FinishGameDialog>("Гра завершена", parameters, options);
 	}
 	private List<string> results = new()
 {
@@ -91,24 +104,20 @@ else
 			await GameHubClient.MakeMove(gameId, move);
 		}
 	}
-
 	private async Task FinishGame(string result)
 	{
-		if (gameId is not null)
+		if (gameSession != null)
 		{
-			await GameHubClient.FinishGame(gameId, result);
+			gameSession.Result = result;
 
-			var options = new DialogOptions { CloseOnEscapeKey = false };
-			var parameters = new DialogParameters { ["Result"] = result };
-
-			await DialogService.ShowAsync<FinishGameDialog>("Гра завершена", parameters, options);
+			await GameHubClient.FinishGame(gameSession.Id, result);
 		}
 	}
-
 	public void Dispose()
 	{
 		GameHubClient.OnGameStateReceived -= OnGameStateReceived;
 		GameHubClient.OnMoveReceived -= OnMoveReceived;
+		GameHubClient.OnGameFinished -= OnGameFinished;
 	}
 	private List<MoveDto> immortalGameMoves =
 	[
