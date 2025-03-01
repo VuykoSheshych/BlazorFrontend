@@ -2,24 +2,34 @@
 @inject MudBlazor.IDialogService DialogService
 
 <MudDialog>
-	<TitleContent>Гра завершена</TitleContent>
+	<TitleContent>The game ended</TitleContent>
 	<DialogContent>
-		<p>Результат: @Result</p>
+		@if (Winner == CurrentUser)
+		{
+			<MudText Typo="Typo.body1">You won!</MudText>
+		}
+		else if (Winner == "Draw")
+		{
+			<MudText Typo="Typo.body1">Draw!</MudText>
+		}
+		else
+		{
+			<MudText Typo="Typo.body1">You lost!</MudText>
+		}
 	</DialogContent>
+
 	<DialogActions>
-		<MudButton OnClick="GoToSearch" Color="Color.Primary">Шукати нову гру</MudButton>
+		<MudButton OnClick="GoToSearch" Color="Color.Primary">Search new game</MudButton>
 	</DialogActions>
 </MudDialog>
 
 @code {
 	[CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
-	[Parameter] public string? Result { get; set; }
+	[Parameter] public string? Winner { get; set; }
+	[Parameter] public string? CurrentUser { get; set; }
 	private void GoToSearch()
 	{
-		if (MudDialog != null)
-		{
-			MudDialog.Close();
-		}
+		MudDialog?.Close();
 		NavigationManager.NavigateTo("/game/search");
 	}
 }

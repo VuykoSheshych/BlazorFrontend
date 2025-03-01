@@ -50,7 +50,7 @@ public class GameHubClient
 	{
 		return await _hubConnection.InvokeAsync<string>("TerminateGameSearch", player);
 	}
-	private async Task<string> GetCurrentUserAsync()
+	public async Task<string> GetCurrentUserAsync()
 	{
 		var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
 		return state.User.Identity?.Name ?? string.Empty;
