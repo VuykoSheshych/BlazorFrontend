@@ -10,6 +10,11 @@
 
 @if (gameSession is not null)
 {
+	@if(!isMoveValid)
+	{
+	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Move is incorrect!</MudAlert>
+	}
+
 	<MudText Typo="Typo.body1">[DEBUG] Current FEN: @gameSession.CurrentFen</MudText>
 
 	<MudText Typo="Typo.h4">Opponent: @(currentUser == gameSession.PlayerBlack ? gameSession.PlayerWhite : gameSession.PlayerBlack)</MudText>
@@ -38,6 +43,8 @@ else
 	private GameSession? gameSession;
 	private string? currentUser;
 	private char[,]? chessBoard;
+	private (int row, int col)? selectedSquare;
+	private bool isMoveValid = true;
 	private List<string> results = new()
 	{
 		"White",
@@ -52,12 +59,24 @@ else
 			currentUser = await GameHubClient.GetCurrentUserAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
+			GameHubClient.OnMoveRecieved += OnMoveRecieved;
 			GameHubClient.OnGameFinished += OnGameFinished;
 		}
 	}
-	private void OnSquareClick((int row, int col) position)
+	private async Task OnSquareClick((int row, int col) position)
 	{
-		Console.WriteLine($"Square clicked: {position.row},{position.col}");
+		if (selectedSquare.HasValue)
+        {
+            var from = selectedSquare.Value;
+            var to = position;
+
+            await MakeMove(from, to);
+            selectedSquare = null;
+		}
+		else
+        {
+            selectedSquare = position;
+        }
 	}
 	private void OnGameStateReceived(GameSession state)
 	{
@@ -70,6 +89,23 @@ else
 
 		StateHasChanged();
 	}
+	private void OnMoveRecieved(bool moveResult)
+    {
+        isMoveValid = moveResult;
+        
+        if (!isMoveValid)
+        {
+            HideMoveAlertAfterDelay();
+        }
+
+        StateHasChanged();
+    }
+    private async void HideMoveAlertAfterDelay()
+    {
+        await Task.Delay(1000);
+        isMoveValid = true;
+        StateHasChanged();
+    }
 	private Task OnGameFinished(string winner)
 	{
 		var options = new DialogOptions
@@ -82,14 +118,19 @@ else
 
 		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
-	private async Task MakeMove(string from, string to)
-	{
-		if (gameId is not null)
-		{
-			var move = new MoveDto { From = from, To = to };
-			await GameHubClient.MakeMove(gameId, move);
-		}
-	}
+	private async Task MakeMove((int row, int col) from, (int row, int col) to)
+    {
+        if (gameId is not null)
+        {
+            var move = new MoveDto
+            {
+                From = $"{(char)('a' + from.col)}{8 - from.row}",
+                To = $"{(char)('a' + to.col)}{8 - to.row}"
+            };
+
+            await GameHubClient.MakeMove(gameId, move);
+        }
+    }
 	private async Task FinishGame(string result)
 	{
 		if (gameSession != null)
@@ -102,6 +143,7 @@ else
 	public void Dispose()
 	{
 		GameHubClient.OnGameStateReceived -= OnGameStateReceived;
+		GameHubClient.OnMoveRecieved -= OnMoveRecieved;
 		GameHubClient.OnGameFinished -= OnGameFinished;
 	}
 }
