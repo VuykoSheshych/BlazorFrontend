@@ -9,7 +9,6 @@ public class GameHubClient
 	private readonly AuthenticationStateProvider _authenticationStateProvider;
 	private readonly HubConnection _hubConnection;
 	public event Action<GameSession>? OnGameStateReceived;
-	public event Action<MoveDto>? OnMoveReceived;
 	public event Action<string>? OnGameFound;
 	public event Func<string, Task>? OnGameFinished;
 	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
@@ -22,7 +21,6 @@ public class GameHubClient
 			.Build();
 
 		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
-		_hubConnection.On<MoveDto>("ReceiveMove", move => OnMoveReceived?.Invoke(move));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
 		_hubConnection.On<string>("GameFinished", async result =>
 		{
