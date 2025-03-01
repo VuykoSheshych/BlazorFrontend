@@ -12,36 +12,14 @@
 {
 	<MudText Typo="Typo.body1">[DEBUG] Current FEN: @gameSession.CurrentFen</MudText>
 
-	<MudText Typo="Typo.h4">PlayerBlack: @gameSession.PlayerBlack</MudText>
+	<MudText Typo="Typo.h4">Opponent: @(currentUser == gameSession.PlayerBlack ? gameSession.PlayerWhite : gameSession.PlayerBlack)</MudText>
 
 	@if (chessBoard != null)
 	{
-		<MudGrid Spacing="0">
-			@for (int row = 0; row <= 7; row++)
-			{
-				var r = row;
-
-				<MudItem xs="12">
-					<MudGrid Spacing="0">
-						@for (int col = 0; col <= 7; col++)
-						{
-							var c = col;
-							var squareColor = (r + c) % 2 == 0 ? Colors.Yellow.Accent1 : Colors.Gray.Darken1;
-
-							<MudPaper Style="@($"background:{squareColor};")">
-								<MudButton Style="height:60px; width:60px;" Class="align-center justify-center mud-width-full py-8"
-									Variant="Variant.Filled" OnClick="() => OnSquareClick(r, c)">
-									<MudText Typo="Typo.h3">@GetPieceSymbol(r, c)</MudText>
-								</MudButton>
-							</MudPaper>
-						}
-					</MudGrid>
-				</MudItem>
-			}
-		</MudGrid>
+		<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUser == gameSession.PlayerBlack)" />
 	}
 
-	<MudText Typo="Typo.h4">PlayerWhite: @gameSession.PlayerWhite</MudText>
+	<MudText Typo="Typo.h4">You: @currentUser</MudText>
 
 	<MudText Typo="Typo.h4">Result: @gameSession.Result</MudText>
 
@@ -58,48 +36,28 @@ else
 @code {
 	[Parameter] public string? gameId { get; set; }
 	private GameSession? gameSession;
+	private string? currentUser;
 	private char[,]? chessBoard;
+	private List<string> results = new()
+	{
+		"White",
+		"Black",
+		"Draw"
+	};
 	protected override async Task OnInitializedAsync()
 	{
 		if (gameId is not null)
 		{
 			await GameHubClient.Connect();
+			currentUser = await GameHubClient.GetCurrentUserAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
-			GameHubClient.OnMoveReceived += OnMoveReceived;
 			GameHubClient.OnGameFinished += OnGameFinished;
 		}
 	}
-	private void OnSquareClick(int row, int col)
+	private void OnSquareClick((int row, int col) position)
 	{
-		Console.WriteLine($"Square clicked: {row},{col}");
-	}
-
-	private char GetPieceSymbol(int row, int col)
-	{
-		if (row < 0 || row >= 8 || col < 0 || col >= 8 || chessBoard == null)
-		{
-			return ' ';
-		}
-
-		var piece = chessBoard[row, col];
-
-		return piece switch
-		{
-			'r' => '♜',
-			'n' => '♞',
-			'b' => '♝',
-			'q' => '♛',
-			'k' => '♚',
-			'p' => '♟',
-			'R' => '♖',
-			'N' => '♘',
-			'B' => '♗',
-			'Q' => '♕',
-			'K' => '♔',
-			'P' => '♙',
-			_ => ' ',
-		};
+		Console.WriteLine($"Square clicked: {position.row},{position.col}");
 	}
 	private void OnGameStateReceived(GameSession state)
 	{
@@ -112,11 +70,7 @@ else
 
 		StateHasChanged();
 	}
-	private void OnMoveReceived(MoveDto move)
-	{
-		StateHasChanged();
-	}
-	private Task OnGameFinished(string result)
+	private Task OnGameFinished(string winner)
 	{
 		var options = new DialogOptions
 		{
@@ -124,17 +78,10 @@ else
 			BackdropClick = false,
 			Position = DialogPosition.TopCenter
 		};
-		var parameters = new DialogParameters { ["Result"] = result };
+		var parameters = new DialogParameters { ["Winner"] = winner, ["CurrentUser"] = currentUser };
 
-		return DialogService.ShowAsync<FinishGameDialog>("Гра завершена", parameters, options);
+		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
-	private List<string> results = new()
-{
-"1 0",
-"0 1",
-"0.5 0.5"
-};
-
 	private async Task MakeMove(string from, string to)
 	{
 		if (gameId is not null)
@@ -155,7 +102,6 @@ else
 	public void Dispose()
 	{
 		GameHubClient.OnGameStateReceived -= OnGameStateReceived;
-		GameHubClient.OnMoveReceived -= OnMoveReceived;
 		GameHubClient.OnGameFinished -= OnGameFinished;
 	}
 }
