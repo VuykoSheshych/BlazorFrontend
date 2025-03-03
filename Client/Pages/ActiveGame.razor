@@ -10,9 +10,11 @@
 
 @if (gameSession is not null)
 {
-	@if(!isMoveValid)
+	@if(moveResult == "You cannot make moves with your opponent's pieces!" ||
+		moveResult == "Invalid move for this type of piece!" ||
+		moveResult == "The final square is already occupied by an allied piece!")
 	{
-	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Move is incorrect!</MudAlert>
+	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult</MudAlert>
 	}
 
 	<MudText Typo="Typo.body1">[DEBUG] Current FEN: @gameSession.CurrentFen</MudText>
@@ -44,7 +46,7 @@ else
 	private string? currentUser;
 	private char[,]? chessBoard;
 	private (int row, int col)? selectedSquare;
-	private bool isMoveValid = true;
+	private string moveResult = "Move is correct.";
 	private List<string> results = new()
 	{
 		"White",
@@ -89,21 +91,20 @@ else
 
 		StateHasChanged();
 	}
-	private void OnMoveRecieved(bool moveResult)
+	private void OnMoveRecieved(string moveResult)
     {
-        isMoveValid = moveResult;
+        this.moveResult = moveResult;
         
-        if (!isMoveValid)
-        {
-            HideMoveAlertAfterDelay();
-        }
+        if (moveResult == "You cannot make moves with your opponent's pieces!" ||
+			moveResult == "Invalid move for this type of piece!" ||
+			moveResult == "The final square is already occupied by an allied piece!") HideMoveAlertAfterDelay();
 
         StateHasChanged();
     }
     private async void HideMoveAlertAfterDelay()
     {
         await Task.Delay(1000);
-        isMoveValid = true;
+        moveResult = "Move is correct.";
         StateHasChanged();
     }
 	private Task OnGameFinished(string winner)

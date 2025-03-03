@@ -10,7 +10,7 @@ public class GameHubClient
 	private readonly HubConnection _hubConnection;
 	public event Action<GameSession>? OnGameStateReceived;
 	public event Action<string>? OnGameFound;
-	public event Action<bool>? OnMoveRecieved;
+	public event Action<string>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
 	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
 	{
@@ -22,7 +22,7 @@ public class GameHubClient
 			.Build();
 
 		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
-		_hubConnection.On<bool>("ReceiveMove", move => OnMoveRecieved?.Invoke(move));
+		_hubConnection.On<string>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
 		_hubConnection.On<string>("GameFinished", async result =>
 		{
