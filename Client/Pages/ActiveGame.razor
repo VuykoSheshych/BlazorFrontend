@@ -12,7 +12,9 @@
 {
 	@if(moveResult == "You cannot make moves with your opponent's pieces!" ||
 		moveResult == "Invalid move for this type of piece!" ||
-		moveResult == "The final square is already occupied by an allied piece!")
+		moveResult == "The final square is already occupied by an allied piece!" ||
+		moveResult == "You cannot move into check!" ||
+		moveResult == "Invalid castling move!")
 	{
 	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult</MudAlert>
 	}
@@ -97,7 +99,9 @@ else
         
         if (moveResult == "You cannot make moves with your opponent's pieces!" ||
 			moveResult == "Invalid move for this type of piece!" ||
-			moveResult == "The final square is already occupied by an allied piece!") HideMoveAlertAfterDelay();
+			moveResult == "The final square is already occupied by an allied piece!" ||
+			moveResult == "You cannot move into check!" ||
+			moveResult == "Invalid castling move!") HideMoveAlertAfterDelay();
 
         StateHasChanged();
     }
