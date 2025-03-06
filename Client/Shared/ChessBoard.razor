@@ -7,7 +7,9 @@
 			<MudGrid Spacing="0">
 				@foreach (var col in GetColOrder())
 				{
-					var squareColor = (row + col) % 2 == 0 ? Colors.Yellow.Accent1 : Colors.Gray.Darken1;
+					var isSelected = SelectedSquare?.row == row && SelectedSquare?.col == col;
+					var squareColor = isSelected ? Colors.Blue.Lighten2 : (row + col) % 2 == 0
+					? Colors.Yellow.Accent1 : Colors.Gray.Darken1;
 
 					<MudPaper Style="@($"background:{squareColor};")">
 						<MudButton Style="height:60px; width:60px;" Class="align-center justify-center mud-width-full py-8"
@@ -25,8 +27,15 @@
 	[Parameter, EditorRequired] public char[,]? Board { get; set; }
 	[Parameter] public bool IsBlack { get; set; } = false;
 	[Parameter] public EventCallback<(int row, int col)> OnSquareClicked { get; set; }
+	[Parameter] public (int row, int col)? SelectedSquare { get; set; }
 	private void OnSquareClick(int row, int col)
 	{
+		if (SelectedSquare == null)
+		{
+			// Якщо клітинка пуста – не даємо її обрати
+			if (GetPieceSymbol(row, col) == ' ') return;
+		}
+
 		OnSquareClicked.InvokeAsync((row, col));
 	}
 	private char GetPieceSymbol(int row, int col)

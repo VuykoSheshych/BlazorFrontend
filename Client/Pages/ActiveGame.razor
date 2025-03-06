@@ -10,13 +10,9 @@
 
 @if (gameSession is not null)
 {
-	@if(moveResult == "You cannot make moves with your opponent's pieces!" ||
-		moveResult == "Invalid move for this type of piece!" ||
-		moveResult == "The final square is already occupied by an allied piece!" ||
-		moveResult == "You cannot move into check!" ||
-		moveResult == "Invalid castling move!")
+	@if(moveResult.Contains("[ERROR]"))
 	{
-	<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult</MudAlert>
+		<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult</MudAlert>
 	}
 
 	<MudText Typo="Typo.body1">[DEBUG] Current FEN: @gameSession.CurrentFen</MudText>
@@ -25,7 +21,8 @@
 
 	@if (chessBoard != null)
 	{
-		<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUser == gameSession.PlayerBlack)" />
+		<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" 
+			IsBlack="@(currentUser == gameSession.PlayerBlack)" SelectedSquare="@selectedSquare"/>
 	}
 
 	<MudText Typo="Typo.h4">You: @currentUser</MudText>
@@ -48,7 +45,7 @@ else
 	private string? currentUser;
 	private char[,]? chessBoard;
 	private (int row, int col)? selectedSquare;
-	private string moveResult = "Move is correct.";
+	private string moveResult = "[SUCСESS]";
 	private List<string> results = new()
 	{
 		"White",
@@ -69,18 +66,40 @@ else
 	}
 	private async Task OnSquareClick((int row, int col) position)
 	{
-		if (selectedSquare.HasValue)
-        {
-            var from = selectedSquare.Value;
-            var to = position;
+		if (chessBoard == null || gameSession == null) return;
 
-            await MakeMove(from, to);
-            selectedSquare = null;
+		char piece = chessBoard[position.row, position.col];
+
+		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite; // Чи білий цей гравець
+
+		if (selectedSquare == null) 
+		{
+			// Якщо це вибрана фігура належить противнику – не даємо її обрати
+			if ((isCurrentUserWhite && char.IsLower(piece)) || (!isCurrentUserWhite && char.IsUpper(piece))) return;
+
+			else selectedSquare = position;
 		}
 		else
-        {
-            selectedSquare = position;
-        }
+		{
+			// Якщо гравець повторно натискає на обрану фігуру
+			if(selectedSquare == position) return;
+
+			// Якщо гравець робить хід не під час своєї черги – повідомляемо про неможливість подібного
+			else if((IsWhiteTurn() && !isCurrentUserWhite) || (!IsWhiteTurn() && isCurrentUserWhite))
+			{
+				OnMoveRecieved("[ERROR] It's not your turn to move!");
+				return;
+			}
+
+			var from = selectedSquare.Value;
+			var to = position;
+
+			await MakeMove(from, to);
+
+			selectedSquare = null;
+		}
+		
+		StateHasChanged();
 	}
 	private void OnGameStateReceived(GameSession state)
 	{
@@ -97,18 +116,14 @@ else
     {
         this.moveResult = moveResult;
         
-        if (moveResult == "You cannot make moves with your opponent's pieces!" ||
-			moveResult == "Invalid move for this type of piece!" ||
-			moveResult == "The final square is already occupied by an allied piece!" ||
-			moveResult == "You cannot move into check!" ||
-			moveResult == "Invalid castling move!") HideMoveAlertAfterDelay();
+        if (moveResult.Contains("[ERROR]")) HideMoveAlertAfterDelay();
 
         StateHasChanged();
     }
     private async void HideMoveAlertAfterDelay()
     {
         await Task.Delay(1000);
-        moveResult = "Move is correct.";
+        moveResult = "[SUCCESS]";
         StateHasChanged();
     }
 	private Task OnGameFinished(string winner)
@@ -123,18 +138,34 @@ else
 
 		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
+	private bool IsWhiteTurn()
+	{
+		// Якщо ігрова сесія не існує, то за замовчуванням хід білих
+		if(gameSession == null) return true;
+		
+		// Якщо ігрова сесія не має ходів, то за замовчуванням хід білих
+		if(!gameSession.Moves.Any()) return true;
+
+		// Якщо останній хід в грі був за чорними, то за хід білих
+		if(gameSession.Moves.Last().PlayerColor == "b") return true;
+		
+		return false; // В усіх інших випадках хід чорних
+	}
 	private async Task MakeMove((int row, int col) from, (int row, int col) to)
     {
-        if (gameId is not null)
-        {
-            var move = new MoveDto
-            {
-                From = $"{(char)('a' + from.col)}{8 - from.row}",
-                To = $"{(char)('a' + to.col)}{8 - to.row}"
-            };
+		if (gameSession == null || gameId == null) return;
 
-            await GameHubClient.MakeMove(gameId, move);
-        }
+		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite; // Чи білий цей гравець
+
+		var move = new MoveDto
+		{
+			From = $"{(char)('a' + from.col)}{8 - from.row}",
+			To = $"{(char)('a' + to.col)}{8 - to.row}"
+		};
+
+		await GameHubClient.MakeMove(gameId, move);
+		selectedSquare = null;
+		StateHasChanged();
     }
 	private async Task FinishGame(string result)
 	{
