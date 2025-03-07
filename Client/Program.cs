@@ -19,7 +19,6 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 
 builder.Services.AddScoped<GameService>();
 builder.Services.AddScoped<GameHubClient>();
-builder.Services.AddScoped<ChessBoardService>();
 
 builder.Services.AddMudServices();
 

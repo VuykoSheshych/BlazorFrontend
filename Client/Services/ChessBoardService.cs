@@ -1,8 +1,8 @@
 namespace Frontend.Client.Services;
 
-public class ChessBoardService()
+public static class ChessBoardService
 {
-	public char[,] ConvertFenToMatrix(string fen)
+	public static char[,] ConvertFenToMatrix(string fen)
 	{
 		char[,] board = new char[8, 8];
 
