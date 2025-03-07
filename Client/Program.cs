@@ -17,7 +17,7 @@ builder.Services.AddHttpClient("GamePlayServiceAPI", client => client.BaseAddres
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Frontend.ServerAPI"));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GamePlayServiceAPI"));
 
-builder.Services.AddScoped<GameService>();
+builder.Services.AddScoped<GameRecordService>();
 builder.Services.AddScoped<GameHubClient>();
 
 builder.Services.AddMudServices();

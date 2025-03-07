@@ -2,9 +2,9 @@ using System.Net.Http.Json;
 using Frontend.Shared.Models;
 
 namespace Frontend.Client.Services;
-public class GameService(HttpClient httpClient)
+public class GameRecordService(IHttpClientFactory httpClientFactory)
 {
-	private readonly HttpClient _httpClient = httpClient;
+	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("GamePlayServiceAPI");
 
 	public async Task<List<GameRecord>?> GetGamesAsync()
 	{
