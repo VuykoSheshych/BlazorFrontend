@@ -4,17 +4,17 @@
 <MudDialog>
 	<TitleContent>The game ended</TitleContent>
 	<DialogContent>
-		@if (Winner == CurrentUser)
+		@if (Looser == CurrentUser)
 		{
-			<MudText Typo="Typo.body1">You won!</MudText>
+			<MudText Typo="Typo.body1">You lost!</MudText>
 		}
-		else if (Winner == "Draw")
+		else if (Looser == "Draw")
 		{
 			<MudText Typo="Typo.body1">Draw!</MudText>
 		}
 		else
 		{
-			<MudText Typo="Typo.body1">You lost!</MudText>
+			<MudText Typo="Typo.body1">You won!</MudText>
 		}
 	</DialogContent>
 
@@ -25,7 +25,7 @@
 
 @code {
 	[CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
-	[Parameter] public string? Winner { get; set; }
+	[Parameter] public string? Looser { get; set; }
 	[Parameter] public string? CurrentUser { get; set; }
 	private void GoToSearch()
 	{

@@ -11,10 +11,8 @@
 {
 	@if(moveResult.Contains("[ERROR]"))
 	{
-		<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult</MudAlert>
+		<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult.Replace("[ERROR] ", "")</MudAlert>
 	}
-
-	<MudText Typo="Typo.body1">[DEBUG] Current FEN: @gameSession.CurrentFen</MudText>
 
 	<MudText Typo="Typo.h4">Opponent: @(currentUser == gameSession.PlayerBlack ? gameSession.PlayerWhite : gameSession.PlayerBlack)</MudText>
 
@@ -26,12 +24,9 @@
 
 	<MudText Typo="Typo.h4">You: @currentUser</MudText>
 
-	<MudText Typo="Typo.h4">Result: @gameSession.Result</MudText>
-
-	@foreach (var r in results)
-	{
-		<MudButton Variant="Variant.Outlined" @onclick="() => FinishGame(r)">@($"{r}")</MudButton>
-	}
+	<MudButton Variant="Variant.Outlined" @onclick="() => FinishGame(currentUser!)">
+		<MudText Typo="Typo.h4">Concede</MudText>
+	</MudButton>
 }
 else
 {
@@ -45,12 +40,6 @@ else
 	private char[,]? chessBoard;
 	private (int row, int col)? selectedSquare;
 	private string moveResult = "[SUCСESS]";
-	private List<string> results = new()
-	{
-		"White",
-		"Black",
-		"Draw"
-	};
 	protected override async Task OnInitializedAsync()
 	{
 		if (gameId is not null)
@@ -69,7 +58,7 @@ else
 
 		char piece = chessBoard[position.row, position.col];
 
-		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite; // Чи білий цей гравець
+		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite;
 
 		if (selectedSquare == null) 
 		{
@@ -81,7 +70,11 @@ else
 		else
 		{
 			// Якщо гравець повторно натискає на обрану фігуру
-			if(selectedSquare == position) return;
+			if(selectedSquare == position) 
+			{
+				selectedSquare = null;
+				return;
+			}
 
 			// Якщо гравець робить хід не під час своєї черги – повідомляемо про неможливість подібного
 			else if((IsWhiteTurn() && !isCurrentUserWhite) || (!IsWhiteTurn() && isCurrentUserWhite))
@@ -125,7 +118,7 @@ else
         moveResult = "[SUCCESS]";
         StateHasChanged();
     }
-	private Task OnGameFinished(string winner)
+	private Task OnGameFinished(string looser)
 	{
 		var options = new DialogOptions
 		{
@@ -133,7 +126,7 @@ else
 			BackdropClick = false,
 			Position = DialogPosition.TopCenter
 		};
-		var parameters = new DialogParameters { ["Winner"] = winner, ["CurrentUser"] = currentUser };
+		var parameters = new DialogParameters { ["Looser"] = looser, ["CurrentUser"] = currentUser };
 
 		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
@@ -166,13 +159,13 @@ else
 		selectedSquare = null;
 		StateHasChanged();
     }
-	private async Task FinishGame(string result)
+	private async Task FinishGame(string looser)
 	{
 		if (gameSession != null)
 		{
-			gameSession.Result = result;
+			gameSession.Result = looser;
 
-			await GameHubClient.FinishGame(gameSession.Id, result);
+			await GameHubClient.FinishGame(gameSession.Id, looser);
 		}
 	}
 	public void Dispose()
