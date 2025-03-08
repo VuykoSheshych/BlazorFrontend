@@ -1,0 +1,34 @@
+<MudItem xs="12">
+	<MudTable Items="GetMovePairs()" Hover Striped FixedHeader="true" Dense Height="200px">
+		<ToolBarContent>
+			<MudText Typo="Typo.h6">Notation</MudText>
+			<MudSpacer />
+		</ToolBarContent>
+		<HeaderContent>
+			<MudTh>№</MudTh>
+			<MudTh>White: @(Players.whitePlayer ?? string.Empty)</MudTh>
+			<MudTh>Black: @(Players.blackPlayer ?? string.Empty)</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd>@context.whiteMove.MoveNumber</MudTd>
+			<MudTd>@context.whiteMove.SanNotation</MudTd>
+			<MudTd>@(context.blackMove?.SanNotation ?? string.Empty)</MudTd>
+		</RowTemplate>
+	</MudTable>
+</MudItem>
+
+@code {
+	[Parameter] public required List<Move> Moves { get; set; }
+	[Parameter] public (string? whitePlayer, string? blackPlayer) Players { get; set; }
+	private List<(Move whiteMove, Move? blackMove)> GetMovePairs()
+	{
+		var movePairs = new List<(Move whiteMove, Move? blackMove)>();
+		for (int i = 0; i < Moves.Count; i += 2)
+		{
+			var whiteMove = Moves[i];
+			var blackMove = i + 1 < Moves.Count ? Moves[i + 1] : null;
+			movePairs.Add((whiteMove, blackMove));
+		}
+		return movePairs;
+	}
+}

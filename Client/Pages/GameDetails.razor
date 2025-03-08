@@ -4,50 +4,21 @@
 @inject GameRecordService GameService
 @inject NavigationManager NavigationManager
 
-<h3>Game Details</h3>
-
 @if (game == null)
 {
-	<p>Loading...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 else
 {
-	<table class="table">
-		<thead>
-			<tr>
-				<th>№</th>
-				<th>White - @game.PlayerWhite</th>
-				<th>Black - @game.PlayerBlack</th>
-			</tr>
-		</thead>
-		<tbody>
-			@if (game.Moves == null || game.Moves.Count == 0)
-			{
-				<p>This games has no moves.</p>
-			}
-			else
-			{
-				@for (int i = 0; i < game.Moves.Count(); i += 2)
-				{
-					<tr>
-						<th>@game.Moves[i].MoveNumber : </th>
-						<th>@game.Moves[i].SanNotation</th>
-						<th>@(i + 1 < game.Moves.Count() ? game.Moves[i + 1].SanNotation : "#")</th>
-					</tr>
-				}
-			}
-		</tbody>
-	</table>
+	<GameNotation Moves="game.Moves" Players="(game.PlayerWhite, game.PlayerBlack)"></GameNotation>
 }
 
-<button class="btn btn-primary" @onclick="GoBack">Back</button>
+<MudButton OnClick="GoBack" Color="Color.Primary" Variant="Variant.Filled">Back</MudButton>
 
 @code
 {
 	[Parameter] public required string gameId { get; set; }
-
 	private GameRecord? game;
-
 	protected override async Task OnInitializedAsync()
 	{
 		if (Guid.TryParse(gameId, out var parsedGameId))
@@ -59,6 +30,5 @@ else
 			Console.WriteLine("Invalid gameId.");
 		}
 	}
-
 	private void GoBack() => NavigationManager.NavigateTo("/games");
 }

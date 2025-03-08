@@ -5,8 +5,6 @@
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
-<h3>[DEBUG] Game: @gameId</h3>
-
 @if (gameSession is not null)
 {
 	@if(moveResult.Contains("[ERROR]"))
@@ -16,21 +14,38 @@
 
 	<MudText Typo="Typo.h4">Opponent: @(currentUser == gameSession.PlayerBlack ? gameSession.PlayerWhite : gameSession.PlayerBlack)</MudText>
 
-	@if (chessBoard != null)
-	{
-		<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" 
-			IsBlack="@(currentUser == gameSession.PlayerBlack)" SelectedSquare="@selectedSquare"/>
-	}
+	<MudGrid Spacing="6">
+		<MudItem xs="12" sm="12" md="6" lg="6" xl="6" class="d-flex align-center justify-center">
+			<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUser == gameSession.PlayerBlack)" SelectedSquare="@selectedSquare"/>
+		</MudItem>
+
+		<MudItem xs="12" sm="12" md="4" lg="4" xl="4">
+			<MudGrid Spacing="5" Justify="Justify.Center">
+				<MudItem xs="12" class="d-flex align-center">
+					<GameNotation Moves="gameSession.Moves"></GameNotation>
+				</MudItem>
+
+				<MudItem xs="12" class="d-flex align-center">
+					<MudButton Variant="Variant.Outlined" Color="Color.Warning" @onclick="() => FinishGame(currentUser!)">
+						<MudText Typo="Typo.body1">Concede</MudText>
+					</MudButton>
+				</MudItem>
+
+				<MudItem xs="12" class="d-flex align-center border-double">
+					<div style="height: 200px; overflow-y: auto;">
+						CHAT
+						<!-- Вміст чату тут -->
+					</div>
+				</MudItem>
+			</MudGrid>
+		</MudItem>
+	</MudGrid>
 
 	<MudText Typo="Typo.h4">You: @currentUser</MudText>
-
-	<MudButton Variant="Variant.Outlined" @onclick="() => FinishGame(currentUser!)">
-		<MudText Typo="Typo.h4">Concede</MudText>
-	</MudButton>
 }
 else
 {
-	<p>Loading game...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 
 @code {
