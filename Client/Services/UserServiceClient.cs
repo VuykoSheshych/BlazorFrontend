@@ -9,13 +9,6 @@ public class UserServiceClient(IHttpClientFactory httpClientFactory)
 
 	public async Task<UserDto?> GetUserByUserNameAsync(string username)
 	{
-		try
-		{
-			return await _httpClient.GetFromJsonAsync<UserDto>($"api/users/{username}");
-		}
-		catch
-		{
-			return null;
-		}
+		return await _httpClient.GetFromJsonAsync<UserDto>($"api/users/{username}"); ;
 	}
 }

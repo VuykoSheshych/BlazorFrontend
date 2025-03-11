@@ -21,7 +21,6 @@ public class UserController(UserService userService) : ControllerBase
 	{
 		var userDto = await _userService.GetUserByUserName(userName);
 
-		if (userDto != null) return NotFound();
 		return Ok(userDto);
 	}
 }

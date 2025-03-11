@@ -9,10 +9,12 @@
 
 @if (gameSession is not null)
 {
-	<MudAvatar Size="Size.Medium">
-		<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
-	</MudAvatar>
-	<MudText Typo="Typo.body1">Opponent: @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
+	<MudItem>
+		<MudAvatar Size="Size.Medium">
+			<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
+		</MudAvatar>
+		<MudText Inline Typo="Typo.h5"> Opponent: @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
+	</MudItem>
 
 	<MudGrid Spacing="6">
 		<MudItem xs="12" sm="12" md="6" lg="6" xl="6" class="d-flex align-center justify-center">
@@ -43,10 +45,12 @@
 		</MudItem>
 	</MudGrid>
 
-	<MudAvatar Size="Size.Medium">
-		<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
-	</MudAvatar>
-	<MudText Typo="Typo.body1">You: @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
+	<MudItem>
+		<MudAvatar Size="Size.Medium">
+			<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
+		</MudAvatar>
+		<MudText Inline Typo="Typo.h5"> Opponent: @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
+	</MudItem>
 }
 else
 {
