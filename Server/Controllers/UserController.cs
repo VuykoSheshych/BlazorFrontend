@@ -1,7 +1,5 @@
-using Frontend.Server.Data;
 using Frontend.Server.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Server.Controllers;
 
@@ -16,5 +14,14 @@ public class UserController(UserService userService) : ControllerBase
 	{
 		var users = await _userService.GetUsersAsync();
 		return Ok(users);
+	}
+
+	[HttpGet("{userName}")]
+	public async Task<IActionResult> GetUserByUserName(string userName)
+	{
+		var userDto = await _userService.GetUserByUserName(userName);
+
+		if (userDto != null) return NotFound();
+		return Ok(userDto);
 	}
 }
