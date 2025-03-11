@@ -1,0 +1,37 @@
+<MudPaper>
+	@foreach (var message in Messages)
+	{
+		<MudChat Dense ChatPosition="@GetMessagePosition(message)">
+			<MudChatHeader>@message.Author</MudChatHeader>
+			<MudChatBubble>@message.Text</MudChatBubble>
+		</MudChat>
+	}
+</MudPaper>
+<MudTextField @bind-Value="@newMessageText" Label="Send message" Variant="Variant.Outlined" AutoGrow MaxLines="4"
+	Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Send" AdornmentColor="Color.Secondary"
+	OnAdornmentClick="SendMessageHandler" />
+
+@code {
+	[Parameter] public required List<ChatMessageDto> Messages { get; set; }
+	[Parameter] public required string CurrentUserName { get; set; }
+	[Parameter] public EventCallback<ChatMessageDto> SendMessage { get; set; }
+	private string newMessageText = string.Empty;
+	private ChatBubblePosition GetMessagePosition(ChatMessageDto message)
+	{
+		return CurrentUserName == message.Author ? ChatBubblePosition.End : ChatBubblePosition.Start;
+	}
+	private async Task SendMessageHandler()
+	{
+		if (string.IsNullOrWhiteSpace(newMessageText)) return;
+
+		var newMessage = new ChatMessageDto
+		{
+			Author = CurrentUserName,
+			Text = newMessageText
+		};
+
+		await SendMessage.InvokeAsync(newMessage);
+
+		newMessageText = string.Empty;
+	}
+}

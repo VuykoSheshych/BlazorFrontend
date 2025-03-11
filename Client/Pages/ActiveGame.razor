@@ -9,12 +9,10 @@
 
 @if (gameSession is not null)
 {
-	<MudItem>
-		<MudAvatar Size="Size.Medium">
-			<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
-		</MudAvatar>
-		<MudText Inline Typo="Typo.h5"> Opponent: @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
-	</MudItem>
+	<MudAvatar Size="Size.Medium">
+		<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
+	</MudAvatar>
+	<MudText Inline Typo="Typo.h5"> @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
 
 	<MudGrid Spacing="6">
 		<MudItem xs="12" sm="12" md="6" lg="6" xl="6" class="d-flex align-center justify-center">
@@ -36,25 +34,20 @@
 				</MudItem>
 
 				<MudItem xs="12" class="d-flex align-center border-double">
-					<div style="height: 200px; overflow-y: auto;">
-						CHAT
-						<!-- Вміст чату тут -->
-					</div>
+					@* <Chat CurrentUserName="currentUserName" Messages="@gameSession.Messages" SendMessage="SendMessage"></Chat> *@
 				</MudItem>
 			</MudGrid>
 		</MudItem>
 	</MudGrid>
 
-	<MudItem>
-		<MudAvatar Size="Size.Medium">
-			<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
-		</MudAvatar>
-		<MudText Inline Typo="Typo.h5"> Opponent: @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
-	</MudItem>
+	<MudAvatar Size="Size.Medium">
+		<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
+	</MudAvatar>
+	<MudText Inline Typo="Typo.h5"> @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
 }
 else
 {
-	<MudText Typo="Typo.h4">Downloading game...</MudText>
+	<MudText Typo="Typo.h5">Downloading game...</MudText>
 	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 
@@ -194,6 +187,10 @@ else
 		await GameHubClient.MakeMove(gameId, move);
 		selectedSquare = null;
 		StateHasChanged();
+	}
+	private async Task SendMessage(ChatMessageDto message)
+	{
+		await GameHubClient.SendMessage(gameId, message);
 	}
 	private async Task FinishGame(string looser)
 	{
