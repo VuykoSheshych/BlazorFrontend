@@ -10,7 +10,7 @@ public class GameRecordService(IHttpClientFactory httpClientFactory)
 	{
 		return await _httpClient.GetFromJsonAsync<List<GameRecord>>("api/games");
 	}
-	public async Task<GameRecord?> GetGameByIdAsync(Guid gameId)
+	public async Task<GameRecord?> GetGameByIdAsync(string gameId)
 	{
 		return await _httpClient.GetFromJsonAsync<GameRecord>($"api/games/{gameId}");
 	}

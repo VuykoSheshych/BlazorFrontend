@@ -7,15 +7,16 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
-<h3>Пошук гри</h3>
+<h3>Game Search</h3>
 
-<button @onclick="() => StartGameSearch()">Почати пошук</button>
+<button @onclick="() => StartGameSearch()">Start search</button>
 
-<button @onclick="() => TerminateGameSearch()">Припинити пошук</button>
+<button @onclick="() => StopGameSearch()">Stop search</button>
 
 @if (isSearching)
 {
-	<p>Шукаємо пару для гри...</p>
+	<p>Search opponent to game...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 
 @code {
@@ -37,11 +38,11 @@
 	}
 
 	[JSInvokable]
-	public async Task TerminateGameSearch()
+	public async Task StopGameSearch()
 	{
 		if (!string.IsNullOrEmpty(currentUser))
 		{
-			await GameHubClient.TerminateGameSearch(currentUser);
+			await GameHubClient.StopGameSearch(currentUser);
 			isSearching = false;
 		}
 	}
@@ -60,10 +61,6 @@
 		isSearching = false;
 		StateHasChanged();
 
-		NavigationManager.NavigateTo($"/game/active/{gameId}");
-	}
-	private void StartGame(string gameId)
-	{
 		NavigationManager.NavigateTo($"/game/active/{gameId}");
 	}
 	public void Dispose()

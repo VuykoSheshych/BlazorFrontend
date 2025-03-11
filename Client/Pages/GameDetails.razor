@@ -1,7 +1,7 @@
 @page "/games/{gameId}"
 
 @using Frontend.Shared.Models
-@inject GameRecordService GameService
+@inject GameRecordService GameRecordService
 @inject NavigationManager NavigationManager
 
 @if (game == null)
@@ -21,14 +21,7 @@ else
 	private GameRecord? game;
 	protected override async Task OnInitializedAsync()
 	{
-		if (Guid.TryParse(gameId, out var parsedGameId))
-		{
-			game = await GameService.GetGameByIdAsync(parsedGameId);
-		}
-		else
-		{
-			Console.WriteLine("Invalid gameId.");
-		}
+		game = await GameRecordService.GetGameByIdAsync(gameId);
 	}
 	private void GoBack() => NavigationManager.NavigateTo("/games");
 }
