@@ -2,21 +2,22 @@
 
 @attribute [Authorize]
 @inject GameHubClient GameHubClient
+@inject UserServiceClient UserServiceClient
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 @if (gameSession is not null)
 {
-	@if(moveResult.Contains("[ERROR]"))
-	{
-		<MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@moveResult.Replace("[ERROR] ", "")</MudAlert>
-	}
-
-	<MudText Typo="Typo.h4">Opponent: @(currentUser == gameSession.PlayerBlack ? gameSession.PlayerWhite : gameSession.PlayerBlack)</MudText>
+	<MudAvatar Size="Size.Medium">
+		<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
+	</MudAvatar>
+	<MudText Typo="Typo.body1">Opponent: @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
 
 	<MudGrid Spacing="6">
 		<MudItem xs="12" sm="12" md="6" lg="6" xl="6" class="d-flex align-center justify-center">
-			<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUser == gameSession.PlayerBlack)" SelectedSquare="@selectedSquare"/>
+			<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUserName == blackPlayer?.Name)"
+				SelectedSquare="@selectedSquare" />
 		</MudItem>
 
 		<MudItem xs="12" sm="12" md="4" lg="4" xl="4">
@@ -26,7 +27,8 @@
 				</MudItem>
 
 				<MudItem xs="12" class="d-flex align-center">
-					<MudButton Variant="Variant.Outlined" Color="Color.Warning" @onclick="() => FinishGame(currentUser!)">
+					<MudButton Variant="Variant.Outlined" Color="Color.Warning"
+						@onclick="() => FinishGame(currentUserName!)">
 						<MudText Typo="Typo.body1">Concede</MudText>
 					</MudButton>
 				</MudItem>
@@ -41,26 +43,32 @@
 		</MudItem>
 	</MudGrid>
 
-	<MudText Typo="Typo.h4">You: @currentUser</MudText>
+	<MudAvatar Size="Size.Medium">
+		<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
+	</MudAvatar>
+	<MudText Typo="Typo.body1">You: @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
 }
 else
 {
+	<MudText Typo="Typo.h4">Downloading game...</MudText>
 	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 
 @code {
-	[Parameter] public string? gameId { get; set; }
+	[Parameter] public required string gameId { get; set; }
 	private GameSession? gameSession;
-	private string? currentUser;
+	private string? currentUserName;
+	private UserDto? whitePlayer;
+	private UserDto? blackPlayer;
 	private char[,]? chessBoard;
 	private (int row, int col)? selectedSquare;
-	private string moveResult = "[SUCСESS]";
+	private MoveResultDto? moveResult;
 	protected override async Task OnInitializedAsync()
 	{
 		if (gameId is not null)
 		{
 			await GameHubClient.Connect();
-			currentUser = await GameHubClient.GetCurrentUserAsync();
+			currentUserName = await GameHubClient.GetCurrentUserAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;
@@ -73,9 +81,9 @@ else
 
 		char piece = chessBoard[position.row, position.col];
 
-		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite;
+		bool isCurrentUserWhite = currentUserName == gameSession.WhitePlayer.Name;
 
-		if (selectedSquare == null) 
+		if (selectedSquare == null)
 		{
 			// Якщо це вибрана фігура належить противнику – не даємо її обрати
 			if ((isCurrentUserWhite && char.IsLower(piece)) || (!isCurrentUserWhite && char.IsUpper(piece))) return;
@@ -85,16 +93,16 @@ else
 		else
 		{
 			// Якщо гравець повторно натискає на обрану фігуру
-			if(selectedSquare == position) 
+			if (selectedSquare == position)
 			{
 				selectedSquare = null;
 				return;
 			}
 
 			// Якщо гравець робить хід не під час своєї черги – повідомляемо про неможливість подібного
-			else if((IsWhiteTurn() && !isCurrentUserWhite) || (!IsWhiteTurn() && isCurrentUserWhite))
+			else if ((IsWhiteTurn() && !isCurrentUserWhite) || (!IsWhiteTurn() && isCurrentUserWhite))
 			{
-				OnMoveRecieved("[ERROR] It's not your turn to move!");
+				OnMoveRecieved(MoveResultDto.Error("It's not your turn to move!"));
 				return;
 			}
 
@@ -105,10 +113,10 @@ else
 
 			selectedSquare = null;
 		}
-		
+
 		StateHasChanged();
 	}
-	private void OnGameStateReceived(GameSession state)
+	private async Task OnGameStateReceived(GameSession state)
 	{
 		gameSession = state;
 
@@ -117,22 +125,25 @@ else
 			chessBoard = ChessBoardService.ConvertFenToMatrix(gameSession.CurrentFen);
 		}
 
+		if (whitePlayer is null) whitePlayer = await UserServiceClient.GetUserByUserNameAsync(gameSession!.WhitePlayer.Name);
+		if (blackPlayer is null) blackPlayer = await UserServiceClient.GetUserByUserNameAsync(gameSession!.BlackPlayer.Name);
+
 		StateHasChanged();
 	}
-	private void OnMoveRecieved(string moveResult)
-    {
-        this.moveResult = moveResult;
-        
-        if (moveResult.Contains("[ERROR]")) HideMoveAlertAfterDelay();
+	private void OnMoveRecieved(MoveResultDto moveResultDto)
+	{
+		moveResult = moveResultDto;
 
-        StateHasChanged();
-    }
-    private async void HideMoveAlertAfterDelay()
-    {
-        await Task.Delay(1000);
-        moveResult = "[SUCCESS]";
-        StateHasChanged();
-    }
+		if (!moveResultDto.IsSuccess) ShowError(moveResultDto.Message);
+
+		StateHasChanged();
+	}
+	private async void ShowError(string message)
+	{
+		Snackbar.Add(message, Severity.Error);
+		await Task.Delay(1000);
+		moveResult = null;
+	}
 	private Task OnGameFinished(string looser)
 	{
 		var options = new DialogOptions
@@ -141,28 +152,34 @@ else
 			BackdropClick = false,
 			Position = DialogPosition.TopCenter
 		};
-		var parameters = new DialogParameters { ["Looser"] = looser, ["CurrentUser"] = currentUser };
+		var parameters = new DialogParameters { ["Looser"] = looser, ["CurrentUser"] = currentUserName };
 
 		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
 	private bool IsWhiteTurn()
 	{
 		// Якщо ігрова сесія не існує, то за замовчуванням хід білих
-		if(gameSession == null) return true;
-		
-		// Якщо ігрова сесія не має ходів, то за замовчуванням хід білих
-		if(!gameSession.Moves.Any()) return true;
+		if (gameSession == null) return true;
 
-		// Якщо останній хід в грі був за чорними, то за хід білих
-		if(gameSession.Moves.Last().PlayerColor == "b") return true;
-		
+		// Якщо ігрова сесія не має ходів, то за замовчуванням хід білих
+		if (!gameSession.Moves.Any()) return true;
+
+		// Якщо останній хід в грі був за чорними, то хід білих
+		if (gameSession.Moves.Last().PlayerColor == "b") return true;
+
 		return false; // В усіх інших випадках хід чорних
 	}
+	private UserDto? GetOpponentPlayer()
+	{
+		return currentUserName == blackPlayer?.Name ? whitePlayer : blackPlayer;
+	}
+	private UserDto? GetCurrentPlayer()
+	{
+		return currentUserName == blackPlayer?.Name ? blackPlayer : whitePlayer;
+	}
 	private async Task MakeMove((int row, int col) from, (int row, int col) to)
-    {
+	{
 		if (gameSession == null || gameId == null) return;
-
-		bool isCurrentUserWhite = currentUser == gameSession.PlayerWhite; // Чи білий цей гравець
 
 		var move = new MoveDto
 		{
@@ -173,13 +190,11 @@ else
 		await GameHubClient.MakeMove(gameId, move);
 		selectedSquare = null;
 		StateHasChanged();
-    }
+	}
 	private async Task FinishGame(string looser)
 	{
-		if (gameSession != null)
+		if (gameSession is not null)
 		{
-			gameSession.Result = looser;
-
 			await GameHubClient.FinishGame(gameSession.Id, looser);
 		}
 	}

@@ -1,7 +1,7 @@
 namespace Frontend.Shared.Models;
-public class MoveDto
+public record MoveDto
 {
-	public string From { get; set; } = string.Empty;
-	public string To { get; set; } = string.Empty;
-	public string Promotion { get; set; } = string.Empty;
+	public required string From { get; set; }
+	public required string To { get; set; }
+	public string? Promotion { get; set; }
 }

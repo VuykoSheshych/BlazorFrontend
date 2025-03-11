@@ -8,9 +8,9 @@ public class GameHubClient
 {
 	private readonly AuthenticationStateProvider _authenticationStateProvider;
 	private readonly HubConnection _hubConnection;
-	public event Action<GameSession>? OnGameStateReceived;
+	public event Func<GameSession, Task>? OnGameStateReceived;
 	public event Action<string>? OnGameFound;
-	public event Action<string>? OnMoveRecieved;
+	public event Action<MoveResultDto>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
 	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
 	{
@@ -21,20 +21,22 @@ public class GameHubClient
 			.WithAutomaticReconnect()
 			.Build();
 
-		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
-		_hubConnection.On<string>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
+		_hubConnection.On<MoveResultDto>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
-		_hubConnection.On<string>("GameFinished", async result =>
+		_hubConnection.On<GameSession>("ReceiveGameState", async gameSession =>
+		{
+			if (OnGameStateReceived != null)
+				await OnGameStateReceived.Invoke(gameSession);
+		});
+		_hubConnection.On<string>("GameFinished", async looser =>
 		{
 			if (OnGameFinished != null)
-			{
-				await OnGameFinished.Invoke(result);
-			}
+				await OnGameFinished.Invoke(looser);
 		});
 		_hubConnection.Closed += async (exception) =>
 		{
 			var user = await GetCurrentUserAsync();
-			await TerminateGameSearch(user);
+			await StopGameSearch(user);
 		};
 	}
 	public async Task Connect()
@@ -48,9 +50,9 @@ public class GameHubClient
 	{
 		return await _hubConnection.InvokeAsync<string>("StartGameSearch", player);
 	}
-	public async Task<string> TerminateGameSearch(string player)
+	public async Task<string> StopGameSearch(string player)
 	{
-		return await _hubConnection.InvokeAsync<string>("TerminateGameSearch", player);
+		return await _hubConnection.InvokeAsync<string>("StopGameSearch", player);
 	}
 	public async Task<string> GetCurrentUserAsync()
 	{
@@ -61,8 +63,8 @@ public class GameHubClient
 	{
 		await _hubConnection.InvokeAsync("MakeMove", gameId, moveDto);
 	}
-	public async Task FinishGame(string gameId, string result)
+	public async Task FinishGame(string gameId, string looser)
 	{
-		await _hubConnection.InvokeAsync("FinishGame", gameId, result);
+		await _hubConnection.InvokeAsync("FinishGame", gameId, looser);
 	}
 }
