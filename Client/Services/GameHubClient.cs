@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Components.Authorization;
 namespace Frontend.Client.Services;
 public class GameHubClient
 {
-	private readonly AuthenticationStateProvider _authenticationStateProvider;
+	private readonly UserServiceClient _userServiceClient;
 	private readonly HubConnection _hubConnection;
 	public event Func<GameSession, Task>? OnGameStateReceived;
 	public event Action<string>? OnGameFound;
 	public event Action<MoveResultDto>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
-	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
+	public GameHubClient(NavigationManager navigationManager, UserServiceClient userServiceClient)
 	{
-		_authenticationStateProvider = authenticationStateProvider;
+		_userServiceClient = userServiceClient;
 
 		_hubConnection = new HubConnectionBuilder()
 			.WithUrl(navigationManager.ToAbsoluteUri("https://localhost:7251/gameHub"))
@@ -35,7 +35,7 @@ public class GameHubClient
 		});
 		_hubConnection.Closed += async (exception) =>
 		{
-			var user = await GetCurrentUserAsync();
+			var user = await _userServiceClient.GetCurrentUserAsync();
 			await StopGameSearch(user);
 		};
 	}
@@ -46,18 +46,22 @@ public class GameHubClient
 			await _hubConnection.StartAsync();
 		}
 	}
-	public async Task<string> StartSearch(string player)
+	public async Task Disconnect()
 	{
-		return await _hubConnection.InvokeAsync<string>("StartGameSearch", player);
+		if (_hubConnection.State == HubConnectionState.Connected)
+		{
+			await _hubConnection.StopAsync();
+		}
 	}
-	public async Task<string> StopGameSearch(string player)
+	public async Task StartGameSearch(string player)
 	{
-		return await _hubConnection.InvokeAsync<string>("StopGameSearch", player);
+		await Connect();
+		await _hubConnection.InvokeAsync<string>("StartGameSearch", player);
 	}
-	public async Task<string> GetCurrentUserAsync()
+	public async Task StopGameSearch(string player)
 	{
-		var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
-		return state.User.Identity?.Name ?? string.Empty;
+		await _hubConnection.InvokeAsync<string>("StopGameSearch", player);
+		await Disconnect();
 	}
 	public async Task MakeMove(string gameId, MoveDto moveDto)
 	{

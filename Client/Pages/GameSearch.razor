@@ -4,14 +4,19 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject GameHubClient GameHubClient
+@inject UserServiceClient UserServiceClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
-<h3>Game Search</h3>
+<PageTitle>Game Search</PageTitle>
 
-<button @onclick="() => StartGameSearch()">Start search</button>
+<MudButton StartIcon="fas fa-search" Color="Color.Success" Variant="Variant.Filled" @onclick="() => StartGameSearch()">
+	Start search
+</MudButton>
 
-<button @onclick="() => StopGameSearch()">Stop search</button>
+<MudButton StartIcon="fas fa-search" Color="Color.Error" Variant="Variant.Filled" @onclick="() => StopGameSearch()">
+	Stop search
+</MudButton>
 
 @if (isSearching)
 {
@@ -26,8 +31,7 @@
 	private bool isSearching = false;
 	protected override async Task OnInitializedAsync()
 	{
-		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		currentUser = authState.User.Identity?.Name ?? string.Empty;
+		currentUser = await UserServiceClient.GetCurrentUserAsync();
 
 		if (!string.IsNullOrEmpty(currentUser))
 		{
@@ -52,8 +56,7 @@
 
 		if (!string.IsNullOrEmpty(currentUser))
 		{
-			await GameHubClient.Connect();
-			await GameHubClient.StartSearch(currentUser);
+			await GameHubClient.StartGameSearch(currentUser);
 		}
 	}
 	private void OnGameFound(string gameId)

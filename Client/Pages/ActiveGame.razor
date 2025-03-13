@@ -65,7 +65,7 @@ else
 		if (gameId is not null)
 		{
 			await GameHubClient.Connect();
-			currentUserName = await GameHubClient.GetCurrentUserAsync();
+			currentUserName = await UserServiceClient.GetCurrentUserAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;
@@ -127,19 +127,18 @@ else
 
 		StateHasChanged();
 	}
-	private void OnMoveRecieved(MoveResultDto moveResultDto)
+	private async void OnMoveRecieved(MoveResultDto moveResultDto)
 	{
 		moveResult = moveResultDto;
 
-		if (!moveResultDto.IsSuccess) ShowError(moveResultDto.Message);
+		if (!moveResultDto.IsSuccess)
+		{
+			Snackbar.Add(moveResultDto.Message, Severity.Error);
+			await Task.Delay(1000);
+			moveResult = null;
+		}
 
 		StateHasChanged();
-	}
-	private async void ShowError(string message)
-	{
-		Snackbar.Add(message, Severity.Error);
-		await Task.Delay(1000);
-		moveResult = null;
 	}
 	private Task OnGameFinished(string looser)
 	{
