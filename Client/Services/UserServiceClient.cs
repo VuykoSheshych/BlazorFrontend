@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
-using Frontend.Shared.Models;
+using System.Security.Claims;
+using Frontend.Shared.Models.Dtos;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Frontend.Client.Services;

@@ -1,4 +1,4 @@
-namespace Frontend.Shared.Models;
+namespace Frontend.Shared.Models.Dtos;
 
 public record MoveResultDto(bool IsSuccess, string Message)
 {

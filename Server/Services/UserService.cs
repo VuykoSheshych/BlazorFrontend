@@ -1,5 +1,6 @@
 using Frontend.Server.Data;
-using Frontend.Shared.Models;
+using Frontend.Server.Models;
+using Frontend.Shared.Models.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Server.Services;

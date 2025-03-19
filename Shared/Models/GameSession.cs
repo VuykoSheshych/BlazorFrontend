@@ -1,3 +1,5 @@
+using Frontend.Shared.Models.Dtos;
+
 namespace Frontend.Shared.Models;
 public class GameSession
 {

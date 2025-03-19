@@ -177,11 +177,7 @@ else
 	{
 		if (gameSession == null || gameId == null) return;
 
-		var move = new MoveDto
-		{
-			From = $"{(char)('a' + from.col)}{8 - from.row}",
-			To = $"{(char)('a' + to.col)}{8 - to.row}"
-		};
+		var move = new MoveDto(From: $"{(char)('a' + from.col)}{8 - from.row}", To: $"{(char)('a' + to.col)}{8 - to.row}");
 
 		await GameHubClient.MakeMove(gameId, move);
 		selectedSquare = null;
