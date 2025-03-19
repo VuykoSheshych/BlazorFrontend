@@ -65,7 +65,7 @@ else
 		if (gameId is not null)
 		{
 			await GameHubClient.Connect();
-			currentUserName = await UserServiceClient.GetCurrentUserAsync();
+			currentUserName = await UserServiceClient.GetCurrentUserNameAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;

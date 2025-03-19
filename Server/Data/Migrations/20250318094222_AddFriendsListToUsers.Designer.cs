@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Frontend.Server.Migrations
 {
 	[DbContext(typeof(UserDbContext))]
-	[Migration("20250220134107_InitialCreate")]
-	partial class InitialCreate
+	[Migration("20250318094222_AddFriendsListToUsers")]
+	partial class AddFriendsListToUsers
 	{
 		/// <inheritdoc />
 		protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -173,9 +173,15 @@ namespace Frontend.Server.Migrations
 					b.Property<int>("AccessFailedCount")
 						.HasColumnType("integer");
 
+					b.Property<byte[]>("Avatar")
+						.HasColumnType("bytea");
+
 					b.Property<string>("ConcurrencyStamp")
 						.IsConcurrencyToken()
 						.HasColumnType("text");
+
+					b.Property<int>("EloRating")
+						.HasColumnType("integer");
 
 					b.Property<string>("Email")
 						.HasMaxLength(256)
@@ -213,6 +219,9 @@ namespace Frontend.Server.Migrations
 					b.Property<bool>("TwoFactorEnabled")
 						.HasColumnType("boolean");
 
+					b.Property<string>("UserId")
+						.HasColumnType("text");
+
 					b.Property<string>("UserName")
 						.HasMaxLength(256)
 						.HasColumnType("character varying(256)");
@@ -225,6 +234,8 @@ namespace Frontend.Server.Migrations
 					b.HasIndex("NormalizedUserName")
 						.IsUnique()
 						.HasDatabaseName("UserNameIndex");
+
+					b.HasIndex("UserId");
 
 					b.ToTable("AspNetUsers", (string)null);
 				});
@@ -365,6 +376,13 @@ namespace Frontend.Server.Migrations
 					b.ToTable("AspNetUserTokens", (string)null);
 				});
 
+			modelBuilder.Entity("Frontend.Server.Models.User", b =>
+				{
+					b.HasOne("Frontend.Server.Models.User", null)
+						.WithMany("Friends")
+						.HasForeignKey("UserId");
+				});
+
 			modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
 				{
 					b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -414,6 +432,11 @@ namespace Frontend.Server.Migrations
 						.HasForeignKey("UserId")
 						.OnDelete(DeleteBehavior.Cascade)
 						.IsRequired();
+				});
+
+			modelBuilder.Entity("Frontend.Server.Models.User", b =>
+				{
+					b.Navigation("Friends");
 				});
 #pragma warning restore 612, 618
 		}
