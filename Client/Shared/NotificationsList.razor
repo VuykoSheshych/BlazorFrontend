@@ -1,0 +1,46 @@
+@inject UserServiceClient UserServiceClient
+@attribute [Authorize]
+
+<MudMenu Label="Notifications" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Notifications"
+	EndIcon="@Icons.Material.Filled.KeyboardArrowDown" MaxHeight="200" FullWidth="true">
+	@if (notifications.Any())
+	{
+		@foreach (var notification in notifications)
+		{
+			<MudMenuItem Onclick="() => MarkAsRead(notification.Id)">
+				@notification.Message
+				<MudButton OnClick="() => ConfirmFriendRequest(notification.Sender, notification.Id)">Confirm</MudButton>
+			</MudMenuItem>
+		}
+	}
+	else
+	{
+		<MudMenuItem>No new notifications</MudMenuItem>
+	}
+</MudMenu>
+
+@code {
+	private List<NotificationDto> notifications = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		var userId = await UserServiceClient.GetCurrentUserIdAsync();
+
+		if (!string.IsNullOrEmpty(userId))
+		{
+			var notificationDtos = await UserServiceClient.GetUserNotificationsAsync(userId);
+
+			if (notificationDtos is not null) notifications = notificationDtos;
+		}
+	}
+	private async Task MarkAsRead(string notificationId)
+	{
+		await UserServiceClient.MarkNotificationAsReadAsync(notificationId);
+		StateHasChanged();
+	}
+	private async Task ConfirmFriendRequest(string senderId, string notificationId)
+	{
+		await UserServiceClient.ConfirmFriendRequestAsync(senderId);
+		await MarkAsRead(notificationId);
+	}
+}
