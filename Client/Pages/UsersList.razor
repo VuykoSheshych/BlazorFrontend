@@ -1,0 +1,53 @@
+@page "/users"
+@inject UserServiceClient UserServiceClient
+@inject ISnackbar Snackbar
+
+@if (Users is null)
+{
+	<p>Loading users...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
+}
+else
+{
+	<MudGrid>
+		@foreach (var user in Users)
+		{
+			<MudItem xs="2">
+				<MudCard Outlined>
+					<MudCardMedia Image="@(user.AvatarUrl)" Height="200" />
+					<MudCardContent>
+						<MudText Typo="Typo.body1">@user.Name</MudText>
+						<MudText Typo="Typo.body2">Rating ELO = @user.EloRating</MudText>
+					</MudCardContent>
+					<MudCardActions>
+						<MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => SendFriendRequest(user.Id)">
+							Friend request
+						</MudButton>
+					</MudCardActions>
+				</MudCard>
+			</MudItem>
+		}
+	</MudGrid>
+}
+
+@code {
+	private List<UserDto>? Users;
+	protected override async Task OnInitializedAsync()
+	{
+		Users = await UserServiceClient.GetUsersAsync();
+	}
+	private async Task SendFriendRequest(string receiverId)
+	{
+		var response = await UserServiceClient.SendFriendRequestAsync(receiverId);
+
+		if (response.IsSuccessStatusCode)
+		{
+			Snackbar.Add("Friend request sent successfully!", Severity.Success);
+		}
+		else
+		{
+			var errorMessage = await response.Content.ReadAsStringAsync();
+			Snackbar.Add($"Failed to send friend request: {errorMessage}", Severity.Error);
+		}
+	}
+}

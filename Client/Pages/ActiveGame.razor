@@ -65,7 +65,7 @@ else
 		if (gameId is not null)
 		{
 			await GameHubClient.Connect();
-			currentUserName = await UserServiceClient.GetCurrentUserAsync();
+			currentUserName = await UserServiceClient.GetCurrentUserNameAsync();
 
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;
@@ -177,11 +177,7 @@ else
 	{
 		if (gameSession == null || gameId == null) return;
 
-		var move = new MoveDto
-		{
-			From = $"{(char)('a' + from.col)}{8 - from.row}",
-			To = $"{(char)('a' + to.col)}{8 - to.row}"
-		};
+		var move = new MoveDto(From: $"{(char)('a' + from.col)}{8 - from.row}", To: $"{(char)('a' + to.col)}{8 - to.row}");
 
 		await GameHubClient.MakeMove(gameId, move);
 		selectedSquare = null;

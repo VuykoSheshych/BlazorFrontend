@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Frontend.Shared.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
+using Frontend.Shared.Models.Dtos;
 
 namespace Frontend.Client.Services;
 public class GameHubClient
@@ -33,11 +33,6 @@ public class GameHubClient
 			if (OnGameFinished != null)
 				await OnGameFinished.Invoke(looser);
 		});
-		_hubConnection.Closed += async (exception) =>
-		{
-			var user = await _userServiceClient.GetCurrentUserAsync();
-			await StopGameSearch(user);
-		};
 	}
 	public async Task Connect()
 	{
