@@ -6,9 +6,8 @@ using Frontend.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<UserDbContext>(options =>
-	options.UseLazyLoadingProxies().UseNpgsql(connectionString));
+	options.UseLazyLoadingProxies().UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSwaggerGen();
