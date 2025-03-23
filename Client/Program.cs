@@ -9,9 +9,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddHttpClient("Frontend.ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+builder.Services.AddHttpClient("Frontend.ServerAPI", client => client.BaseAddress = new Uri("http://blazor-server/"))
 	.AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-builder.Services.AddHttpClient("GamePlayServiceAPI", client => client.BaseAddress = new Uri("https://localhost:7251/"));
+builder.Services.AddHttpClient("GamePlayServiceAPI", client => client.BaseAddress = new Uri("http://gameplay-service/"));
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Frontend.ServerAPI"));
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GamePlayServiceAPI"));
