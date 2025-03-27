@@ -1,0 +1,61 @@
+<MudGrid Spacing="0">
+	@foreach (var row in GetRowOrder())
+	{
+		<MudItem xs="12">
+			<MudGrid Spacing="0">
+				@foreach (var col in GetColOrder())
+				{
+					var isSelected = SelectedSquare?.row == row && SelectedSquare?.col == col;
+					var squareColor = isSelected ? Colors.Blue.Lighten2 : (row + col) % 2 == 0
+					? Colors.Yellow.Accent1 : Colors.Gray.Darken1;
+
+					<MudPaper Style="@($"background:{squareColor};")">
+						<MudButton Style="height:60px; width:60px;" Class="align-center justify-center mud-width-full py-8"
+							Variant="Variant.Filled" OnClick="() => OnSquareClick(row, col)">
+							<MudText Typo="Typo.h3">@GetPieceSymbol(row, col)</MudText>
+						</MudButton>
+					</MudPaper>
+				}
+			</MudGrid>
+		</MudItem>
+	}
+</MudGrid>
+
+@code {
+	[Parameter, EditorRequired] public char[,]? Board { get; set; }
+	[Parameter] public bool IsBlack { get; set; } = false;
+	[Parameter] public EventCallback<(int row, int col)> OnSquareClicked { get; set; }
+	[Parameter] public (int row, int col)? SelectedSquare { get; set; }
+	private void OnSquareClick(int row, int col)
+	{
+		if (SelectedSquare == null)
+		{
+			// Якщо клітинка пуста – не даємо її обрати
+			if (GetPieceSymbol(row, col) == ' ') return;
+		}
+
+		OnSquareClicked.InvokeAsync((row, col));
+	}
+	private char GetPieceSymbol(int row, int col)
+	{
+		if (Board == null) return ' ';
+		return Board[row, col] switch
+		{
+			'r' => '♜',
+			'n' => '♞',
+			'b' => '♝',
+			'q' => '♛',
+			'k' => '♚',
+			'p' => '♟',
+			'R' => '♖',
+			'N' => '♘',
+			'B' => '♗',
+			'Q' => '♕',
+			'K' => '♔',
+			'P' => '♙',
+			_ => ' ',
+		};
+	}
+	private IEnumerable<int> GetRowOrder() => IsBlack ? Enumerable.Range(0, 8).Reverse() : Enumerable.Range(0, 8);
+	private IEnumerable<int> GetColOrder() => IsBlack ? Enumerable.Range(0, 8).Reverse() : Enumerable.Range(0, 8);
+}

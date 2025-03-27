@@ -4,18 +4,24 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject GameHubClient GameHubClient
+@inject UserServiceClient UserServiceClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
-<h3>Пошук гри</h3>
+<PageTitle>Game Search</PageTitle>
 
-<button @onclick="() => StartGameSearch()">Почати пошук</button>
+<MudButton StartIcon="fas fa-search" Color="Color.Success" Variant="Variant.Filled" @onclick="() => StartGameSearch()">
+	Start search
+</MudButton>
 
-<button @onclick="() => TerminateGameSearch()">Припинити пошук</button>
+<MudButton StartIcon="fas fa-search" Color="Color.Error" Variant="Variant.Filled" @onclick="() => StopGameSearch()">
+	Stop search
+</MudButton>
 
 @if (isSearching)
 {
-	<p>Шукаємо пару для гри...</p>
+	<p>Search opponent to game...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
 }
 
 @code {
@@ -25,8 +31,7 @@
 	private bool isSearching = false;
 	protected override async Task OnInitializedAsync()
 	{
-		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		currentUser = authState.User.Identity?.Name ?? string.Empty;
+		currentUser = await UserServiceClient.GetCurrentUserNameAsync();
 
 		if (!string.IsNullOrEmpty(currentUser))
 		{
@@ -37,11 +42,11 @@
 	}
 
 	[JSInvokable]
-	public async Task TerminateGameSearch()
+	public async Task StopGameSearch()
 	{
 		if (!string.IsNullOrEmpty(currentUser))
 		{
-			await GameHubClient.TerminateGameSearch(currentUser);
+			await GameHubClient.StopGameSearch(currentUser);
 			isSearching = false;
 		}
 	}
@@ -51,20 +56,14 @@
 
 		if (!string.IsNullOrEmpty(currentUser))
 		{
-			await GameHubClient.Connect();
-			await GameHubClient.StartSearch(currentUser);
+			await GameHubClient.StartGameSearch(currentUser);
 		}
 	}
 	private void OnGameFound(string gameId)
 	{
 		isSearching = false;
 		StateHasChanged();
-		Console.WriteLine($"Navigating to game {gameId}");
 
-		NavigationManager.NavigateTo($"/game/active/{gameId}");
-	}
-	private void StartGame(string gameId)
-	{
 		NavigationManager.NavigateTo($"/game/active/{gameId}");
 	}
 	public void Dispose()

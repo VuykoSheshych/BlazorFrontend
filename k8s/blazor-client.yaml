@@ -1,0 +1,47 @@
+# ====================== #
+#     Blazor Client      #
+# ====================== #
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blazor-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blazor-client
+  template:
+    metadata:
+      labels:
+        app: blazor-client
+    spec:
+      containers:
+        - name: blazor-client
+          image: chess/blazor-client:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          envFrom:
+            - configMapRef:
+                name: blazor-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blazor-client-service
+spec:
+  selector:
+    app: blazor-client
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

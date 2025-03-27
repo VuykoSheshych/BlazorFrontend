@@ -6,19 +6,35 @@ using Frontend.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<IdentityDbContext>(options =>
-	options.UseNpgsql(connectionString));
+string dbConnection;
+
+if (builder.Environment.IsDevelopment())
+{
+	// У випадку запуску проєкту в середовищі розробки використовується підключення через localhost
+	dbConnection = builder.Configuration.GetConnectionString("PostgresLocalhostConnection")!;
+	// When running the project in a development environment, connection via localhost are used
+}
+else
+{
+	// В інших випадках використовується змінна середовища
+	dbConnection = Environment.GetEnvironmentVariable("BLAZORSERVER_DB_CONNECTION")!;
+	// In other cases, environment variable are used
+}
+
+// В проєкті використовується PostgreSQL та "ліниве завантаження"
+builder.Services.AddDbContext<UserDbContext>(options =>
+	options.UseLazyLoadingProxies().UseNpgsql(dbConnection));
+// The project uses PostgreSQL and lazy loading
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
-	.AddEntityFrameworkStores<IdentityDbContext>();
+	.AddEntityFrameworkStores<UserDbContext>();
 
 builder.Services.AddIdentityServer()
-	.AddApiAuthorization<User, IdentityDbContext>();
+	.AddApiAuthorization<User, UserDbContext>();
 
 builder.Services.AddAuthentication()
 	.AddIdentityServerJwt();
@@ -26,11 +42,19 @@ builder.Services.AddAuthentication()
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+	var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+	await dbContext.Database.MigrateAsync();
+}
+
 if (app.Environment.IsDevelopment())
 {
 	app.UseMigrationsEndPoint();
@@ -41,7 +65,6 @@ if (app.Environment.IsDevelopment())
 else
 {
 	app.UseExceptionHandler("/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	app.UseHsts();
 }
 
@@ -55,7 +78,6 @@ app.UseRouting();
 app.UseIdentityServer();
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapRazorPages();
 app.MapControllers();

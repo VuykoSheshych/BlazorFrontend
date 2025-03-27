@@ -1,49 +1,38 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Frontend.Shared.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
+using Frontend.Shared.Models.Dtos;
 
 namespace Frontend.Client.Services;
 public class GameHubClient
 {
-	private readonly AuthenticationStateProvider _authenticationStateProvider;
+	private readonly UserServiceClient _userServiceClient;
 	private readonly HubConnection _hubConnection;
-	public event Action<GameSession>? OnGameStateReceived;
-	public event Action<MoveDto>? OnMoveReceived;
+	public event Func<GameSession, Task>? OnGameStateReceived;
 	public event Action<string>? OnGameFound;
-	public GameHubClient(NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
+	public event Action<MoveResultDto>? OnMoveRecieved;
+	public event Func<string, Task>? OnGameFinished;
+	public GameHubClient(NavigationManager navigationManager, UserServiceClient userServiceClient)
 	{
-		_authenticationStateProvider = authenticationStateProvider;
+		_userServiceClient = userServiceClient;
 
 		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(navigationManager.ToAbsoluteUri("https://localhost:7251/gameHub"))
+			.WithUrl(navigationManager.ToAbsoluteUri(Environment.GetEnvironmentVariable("GAMEPLAYSERVICE_URL") + "/gameHub"))
 			.WithAutomaticReconnect()
 			.Build();
 
-		_hubConnection.StartAsync().ContinueWith(task =>
+		_hubConnection.On<MoveResultDto>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
+		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
+		_hubConnection.On<GameSession>("ReceiveGameState", async gameSession =>
 		{
-			if (task.IsFaulted)
-			{
-				Console.WriteLine("Error starting connection: " + task.Exception?.Message);
-			}
-			else
-			{
-				Console.WriteLine("Connection started successfully");
-			}
+			if (OnGameStateReceived != null)
+				await OnGameStateReceived.Invoke(gameSession);
 		});
-
-		_hubConnection.On<string>("GameFound", gameId =>
+		_hubConnection.On<string>("GameFinished", async looser =>
 		{
-			Console.WriteLine($"Game found: {gameId}");
-			OnGameFound?.Invoke(gameId);
+			if (OnGameFinished != null)
+				await OnGameFinished.Invoke(looser);
 		});
-		_hubConnection.On<GameSession>("ReceiveGameState", gameSession => OnGameStateReceived?.Invoke(gameSession));
-		_hubConnection.On<MoveDto>("ReceiveMove", move => OnMoveReceived?.Invoke(move));
-		_hubConnection.Closed += async (exception) =>
-		{
-			var user = await GetCurrentUserAsync();
-			await TerminateGameSearch(user);
-		};
 	}
 	public async Task Connect()
 	{
@@ -52,37 +41,33 @@ public class GameHubClient
 			await _hubConnection.StartAsync();
 		}
 	}
-	public async Task<string> StartSearch(string player)
+	public async Task Disconnect()
 	{
-		return await _hubConnection.InvokeAsync<string>("StartGameSearch", player);
+		if (_hubConnection.State == HubConnectionState.Connected)
+		{
+			await _hubConnection.StopAsync();
+		}
 	}
-	private async Task<string> GetCurrentUserAsync()
+	public async Task StartGameSearch(string player)
 	{
-		var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
-		return state.User.Identity?.Name ?? string.Empty;
+		await Connect();
+		await _hubConnection.InvokeAsync<string>("StartGameSearch", player);
 	}
-	public async Task<string> TerminateGameSearch(string player)
+	public async Task StopGameSearch(string player)
 	{
-		return await _hubConnection.InvokeAsync<string>("TerminateGameSearch", player);
-	}
-	public async Task JoinGame(string gameId)
-	{
-		await _hubConnection.InvokeAsync("JoinGame", gameId);
+		await _hubConnection.InvokeAsync<string>("StopGameSearch", player);
+		await Disconnect();
 	}
 	public async Task MakeMove(string gameId, MoveDto moveDto)
 	{
 		await _hubConnection.InvokeAsync("MakeMove", gameId, moveDto);
 	}
-	public async Task LeaveGame(string gameId)
+	public async Task SendMessage(string gameId, ChatMessageDto chatMessage)
 	{
-		await _hubConnection.InvokeAsync("LeaveGame", gameId);
+		await _hubConnection.InvokeAsync("SendMessage", gameId, chatMessage);
 	}
-	public async Task FinishGame(string gameId, string result)
+	public async Task FinishGame(string gameId, string looser)
 	{
-		await _hubConnection.InvokeAsync("FinishGame", gameId, result);
-	}
-	public async Task DisconnectAsync()
-	{
-		await _hubConnection.StopAsync();
+		await _hubConnection.InvokeAsync("FinishGame", gameId, looser);
 	}
 }

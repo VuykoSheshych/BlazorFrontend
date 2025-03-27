@@ -1,7 +1,7 @@
 @page "/games"
 
 @using Frontend.Shared.Models
-@inject GameService GameService
+@inject GameRecordService GameRecordService
 @inject NavigationManager NavigationManager
 
 <h3>Chess games list</h3>
@@ -47,6 +47,6 @@ else
 	private List<GameRecord>? games;
 	protected override async Task OnInitializedAsync()
 	{
-		games = await GameService.GetGamesAsync();
+		games = await GameRecordService.GetGamesAsync();
 	}
 }
