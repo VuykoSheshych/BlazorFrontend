@@ -39,10 +39,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Start Minikube
+        run: |
+          minikube start --driver=docker
+          minikube status
+
       - name: Set up kubectl
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
           sed -i 's#C:\\Users\\Денис#\/home\/runner#g' kubeconfig
+          sed -i 's#\\#\/#g' kubeconfig
           cat kubeconfig
           export KUBECONFIG=$(pwd)/kubeconfig
           kubectl cluster-info
