@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Server.Services;
 
-public class NotificationService(UserDbContext context, UserService userService)
+public class NotificationService(UserDbContext context, IUserService userService) : INotificationService
 {
 	private readonly UserDbContext _context = context;
-	private readonly UserService _userService = userService;
+	private readonly IUserService _userService = userService;
 
 	public async Task<List<NotificationDto>> GetUserNotificationsAsync(string userId)
 	{

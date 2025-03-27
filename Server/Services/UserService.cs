@@ -4,7 +4,7 @@ using Frontend.Shared.Models.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Server.Services;
-public class UserService(UserDbContext context)
+public class UserService(UserDbContext context) : IUserService
 {
 	private readonly UserDbContext _context = context;
 	public async Task<List<User>> GetUsersAsync()

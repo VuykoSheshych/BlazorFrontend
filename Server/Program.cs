@@ -6,8 +6,26 @@ using Frontend.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string dbConnection;
+
+if (builder.Environment.IsDevelopment())
+{
+	// У випадку запуску проєкту в середовищі розробки використовується підключення через localhost
+	dbConnection = builder.Configuration.GetConnectionString("PostgresLocalhostConnection")!;
+	// When running the project in a development environment, connection via localhost are used
+}
+else
+{
+	// В інших випадках використовується змінна середовища
+	dbConnection = Environment.GetEnvironmentVariable("BLAZORSERVER_DB_CONNECTION")!;
+	// In other cases, environment variable are used
+}
+
+// В проєкті використовується PostgreSQL та "ліниве завантаження"
 builder.Services.AddDbContext<UserDbContext>(options =>
-	options.UseLazyLoadingProxies().UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")));
+	options.UseLazyLoadingProxies().UseNpgsql(dbConnection));
+// The project uses PostgreSQL and lazy loading
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSwaggerGen();
@@ -24,8 +42,9 @@ builder.Services.AddAuthentication()
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 builder.Services.AddSignalR();
 
 var app = builder.Build();

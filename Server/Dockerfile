@@ -19,6 +19,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENV DB_CONNECTION_STRING: "Host=user-db;Database=postgres-user-db;Username=blazor-server;Password=CniiawYu4MrlI2LOQXyR"
-
 ENTRYPOINT ["dotnet", "Frontend.Server.dll"]

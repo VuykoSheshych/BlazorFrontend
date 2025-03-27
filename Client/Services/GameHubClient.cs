@@ -17,7 +17,7 @@ public class GameHubClient
 		_userServiceClient = userServiceClient;
 
 		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(navigationManager.ToAbsoluteUri("https://localhost:7251/gameHub"))
+			.WithUrl(navigationManager.ToAbsoluteUri(Environment.GetEnvironmentVariable("GAMEPLAYSERVICE_URL") + "/gameHub"))
 			.WithAutomaticReconnect()
 			.Build();
 

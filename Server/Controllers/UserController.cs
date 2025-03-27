@@ -6,10 +6,9 @@ namespace Frontend.Server.Controllers;
 
 [ApiController]
 [Route("api/users")]
-public class UserController(UserService userService, NotificationService notificationService) : ControllerBase
+public class UserController(IUserService userService) : ControllerBase
 {
-	private readonly UserService _userService = userService;
-	private readonly NotificationService _notificationService = notificationService;
+	private readonly IUserService _userService = userService;
 
 	[HttpGet]
 	public async Task<IActionResult> GetUsersAsync()
@@ -43,50 +42,5 @@ public class UserController(UserService userService, NotificationService notific
 		if (userDto is null) return BadRequest("User not found");
 
 		return Ok(UserService.CreateUserDto(userDto));
-	}
-
-	[HttpPost("friendrequests")]
-	public async Task<IActionResult> SendFriendRequest([FromBody] FriendRequestDto friendRequestDto)
-	{
-		Console.WriteLine($"friendRequestDto.ReceiverId = {friendRequestDto.ReceiverId}");
-		Console.WriteLine($"friendRequestDto.SenderId = {friendRequestDto.SenderId}");
-
-		if (friendRequestDto == null)
-		{
-			return BadRequest("Invalid request data.");
-		}
-
-		await _notificationService.CreateFriendRequestAsync(friendRequestDto);
-
-		return Ok("Friend request sent.");
-	}
-
-	[HttpPost("friendrequests/confirm")]
-	public async Task<IActionResult> ConfirmFriendRequest([FromBody] FriendRequestDto friendRequestDto)
-	{
-		if (friendRequestDto == null)
-		{
-			return BadRequest("Invalid request data.");
-		}
-
-		await _notificationService.ConfirmFriendRequestAsync(friendRequestDto);
-
-		return Ok("Friend request confirmed.");
-	}
-
-	[HttpGet("notifications/{userId}")]
-	public async Task<IActionResult> GetUserNotifications(string userId)
-	{
-		var notifications = await _notificationService.GetUserNotificationsAsync(userId);
-
-		return Ok(notifications);
-	}
-
-	[HttpPost("notifications/{recieverId}")]
-	public async Task<IActionResult> MarkNotificationAsRead(string recieverId, string notificationId)
-	{
-		await _notificationService.MarkAsReadAsync(recieverId, notificationId);
-
-		return Ok();
 	}
 }

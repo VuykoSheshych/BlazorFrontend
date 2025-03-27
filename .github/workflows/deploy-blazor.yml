@@ -1,0 +1,57 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        run: |
+          echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Build and push Blazor Client
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-client:latest -f Client/Dockerfile .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-client:latest
+
+      - name: Build and push Blazor Server
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-server:latest -f Server/Dockerfile .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-server:latest
+
+  deploy:
+    needs: build-and-push
+    environment: Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          export KUBECONFIG=kubeconfig
+          kubectl version
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Update deployment images
+        run: |
+          kubectl set image deployment/blazor-client blazor-client=${{ secrets.DOCKER_HUB_USERNAME }}/blazor-client:latest
+          kubectl set image deployment/blazor-server blazor-server=${{ secrets.DOCKER_HUB_USERNAME }}/blazor-server:latest
+          kubectl rollout restart deployment/blazor-client
+          kubectl rollout restart deployment/blazor-server
