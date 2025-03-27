@@ -43,6 +43,7 @@ jobs:
         run: |
           minikube start --driver=docker
           minikube status
+          minikube update-context
 
       - name: Set up kubectl
         run: |
