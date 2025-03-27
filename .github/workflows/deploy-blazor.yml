@@ -41,9 +41,10 @@ jobs:
 
       - name: Set up kubectl
         run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
+          cat ~/.kube/config | base64 -w 0 | base64 --decode
           export KUBECONFIG=kubeconfig
-          kubectl version
+          kubectl cluster-info
 
       - name: Apply Kubernetes manifests
         run: |
