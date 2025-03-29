@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Full CI/CD Pipeline
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    name: Build and Publish to DockerHub
     environment: Production
     steps:
       - name: Checkout repository
@@ -33,6 +34,7 @@ jobs:
 
   deploy:
     needs: build-and-push
+    name: Deploy to Kubernetes
     environment: Production
     runs-on: ubuntu-latest
     steps:
@@ -48,9 +50,6 @@ jobs:
       - name: Set up kubectl
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
-          sed -i 's#C:\\Users\\Денис#\/home\/runner#g' kubeconfig
-          sed -i 's#\\#\/#g' kubeconfig
-          cat kubeconfig
           export KUBECONFIG=$(pwd)/kubeconfig
           kubectl cluster-info
 
@@ -64,3 +63,7 @@ jobs:
           kubectl set image deployment/blazor-server blazor-server=${{ secrets.DOCKER_HUB_USERNAME }}/blazor-server:latest
           kubectl rollout restart deployment/blazor-client
           kubectl rollout restart deployment/blazor-server
+
+      - name: Show active pods
+        run: |
+          kubectl get pods

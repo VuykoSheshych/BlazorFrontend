@@ -33,6 +33,7 @@ bower_components/
 appsettings.Development.json
 secrets.json
 secrets.txt
+git-config.yaml
 .env
 .env.local
 .env.*.local
