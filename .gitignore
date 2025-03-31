@@ -31,13 +31,10 @@ bower_components/
 
 # Конфіденційні файли
 appsettings.Development.json
-secrets.json
-secrets.txt
-git-config.yaml
+secrets/
 .env
 .env.local
 .env.*.local
-_comments.txt
 tempkey.jwk
 
 # NuGet

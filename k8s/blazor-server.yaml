@@ -32,7 +32,7 @@ spec:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
             - name: BLAZOR_SERVER_DB_CONNECTION
-              value: "Host=blazor-server-db;Database=blazor-server-db;Username=blazor-server;Password=CniiawYu4MrlI2LOQXyR"
+              value: "Host=blazor-server-db-service;Database=blazor-server-db;Username=blazor-server;Password=CniiawYu4MrlI2LOQXyR"
 
 ---
 apiVersion: v1

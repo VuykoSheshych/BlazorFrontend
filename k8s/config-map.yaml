@@ -22,13 +22,13 @@ data:
       server {
         listen 80;
         location / {
-          proxy_pass http://blazor-client-service;
+          proxy_pass http://blazor-client-service/;
         }
         location /api/ {
-          proxy_pass http://blazor-server-service;
+          proxy_pass http://blazor-server-service/;
         }
         location /gameplay/ {
-          proxy_pass http://gameplay-service;
+          proxy_pass http://gameplay-service/;
         }
       }
     }

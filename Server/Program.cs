@@ -17,7 +17,7 @@ if (builder.Environment.IsDevelopment())
 else
 {
 	// В інших випадках використовується змінна середовища
-	dbConnection = Environment.GetEnvironmentVariable("BLAZORSERVER_DB_CONNECTION")!;
+	dbConnection = Environment.GetEnvironmentVariable("BLAZOR_SERVER_DB_CONNECTION")!;
 	// In other cases, environment variable are used
 }
 
@@ -55,12 +55,14 @@ using (var scope = app.Services.CreateScope())
 	await dbContext.Database.MigrateAsync();
 }
 
+app.UseMigrationsEndPoint();
+app.UseWebAssemblyDebugging();
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-	app.UseMigrationsEndPoint();
-	app.UseWebAssemblyDebugging();
-	app.UseSwagger();
-	app.UseSwaggerUI();
+
 }
 else
 {

@@ -6,18 +6,15 @@ using Frontend.Shared.Models.Dtos;
 namespace Frontend.Client.Services;
 public class GameHubClient
 {
-	private readonly UserServiceClient _userServiceClient;
 	private readonly HubConnection _hubConnection;
 	public event Func<GameSession, Task>? OnGameStateReceived;
 	public event Action<string>? OnGameFound;
 	public event Action<MoveResultDto>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
-	public GameHubClient(NavigationManager navigationManager, UserServiceClient userServiceClient)
+	public GameHubClient(NavigationManager navigationManager)
 	{
-		_userServiceClient = userServiceClient;
-
 		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(navigationManager.ToAbsoluteUri(Environment.GetEnvironmentVariable("GAMEPLAYSERVICE_URL") + "/gameHub"))
+			.WithUrl(navigationManager.ToAbsoluteUri(Environment.GetEnvironmentVariable("GAMEPLAY_URL") + "/gameHub"))
 			.WithAutomaticReconnect()
 			.Build();
 
