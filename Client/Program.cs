@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Frontend.Client;
 using Frontend.Client.Services;
 using MudBlazor.Services;
+using System.Net.Http.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -11,6 +12,14 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 string blazorServerUrl;
 string gameplayServiceUrl;
+
+using var httpClient = new HttpClient();
+var config = await httpClient.GetFromJsonAsync<BlazorConfig>("blazor-config.json") ?? throw new InvalidOperationException("Failed to load configuration");
+
+if (string.IsNullOrWhiteSpace(config.BLAZOR_SERVER_URL) || string.IsNullOrWhiteSpace(config.GAMEPLAY_URL))
+{
+	throw new Exception($"Invalid config: BLAZOR_SERVER_URL = '{config.BLAZOR_SERVER_URL}', GAMEPLAY_URL = '{config.GAMEPLAY_URL}'");
+}
 
 if (builder.HostEnvironment.IsDevelopment())
 {
@@ -22,8 +31,8 @@ if (builder.HostEnvironment.IsDevelopment())
 else
 {
 	// В інших випадках використовуються змінна середовища
-	blazorServerUrl = Environment.GetEnvironmentVariable("BLAZOR_SERVER_URL") ?? throw new Exception("BLAZOR_SERVER_URL is not set");
-	gameplayServiceUrl = Environment.GetEnvironmentVariable("GAMEPLAY_URL") ?? throw new Exception("GAMEPLAY_URL is not set");
+	blazorServerUrl = config.BLAZOR_SERVER_URL ?? throw new Exception("BLAZOR_SERVER_URL is not set");
+	gameplayServiceUrl = config.GAMEPLAY_URL ?? throw new Exception("GAMEPLAY_URL is not set");
 	// In other cases, environment variables are used
 }
 
@@ -43,3 +52,9 @@ builder.Services.AddMudServices();
 builder.Services.AddApiAuthorization();
 
 await builder.Build().RunAsync();
+
+class BlazorConfig
+{
+	public string BLAZOR_SERVER_URL { get; set; } = "";
+	public string GAMEPLAY_URL { get; set; } = "";
+}
