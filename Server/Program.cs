@@ -47,6 +47,15 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("CorsOrigins",
+		builder => builder
+			.AllowAnyOrigin()
+			.AllowAnyMethod()
+			.AllowAnyHeader());
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -76,6 +85,8 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("CorsOrigins");
 
 app.UseIdentityServer();
 app.UseAuthentication();
