@@ -1,0 +1,58 @@
+﻿<MudDialogProvider />
+<MudSnackbarProvider />
+<MudThemeProvider Theme="@(ThemeService.IsDarkMode? ThemeService.DarkTheme: ThemeService.LightTheme)" />
+<CascadingAuthenticationState>
+	<Router AppAssembly="@typeof(App).Assembly">
+		<Found Context="routeData">
+			<AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+				<NotAuthorized>
+					<LayoutView Layout="@typeof(MainLayout)">
+						<MudPaper Class="pa-4">
+							<MudText Typo="Typo.h6" Color="Color.Error">
+								⛔ Access denied. Please log in.
+							</MudText>
+							<MudButton Variant="Variant.Outlined"
+								OnClick="@(() => NavigationManager.NavigateTo("/login", true))">
+								Go to login page
+							</MudButton>
+						</MudPaper>
+					</LayoutView>
+				</NotAuthorized>
+				<Authorizing>
+					<LayoutView Layout="@typeof(MainLayout)">
+						<MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+					</LayoutView>
+				</Authorizing>
+			</AuthorizeRouteView>
+			<FocusOnNavigate RouteData="@routeData" Selector="h1" />
+		</Found>
+		<NotFound>
+			<LayoutView Layout="@typeof(MainLayout)">
+				<MudPaper Class="pa-4">
+					<MudText Typo="Typo.h6" Color="Color.Warning">
+						🤷‍♂️ Nothing was found at this address.
+					</MudText>
+					<MudButton Variant="Variant.Filled" Color="Color.Primary"
+						OnClick="@(() => NavigationManager.NavigateTo("/"))">
+						Return to the homepage
+					</MudButton>
+				</MudPaper>
+			</LayoutView>
+		</NotFound>
+	</Router>
+</CascadingAuthenticationState>
+
+@code {
+	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
+	[Inject] private ThemeService ThemeService { get; set; } = default!;
+
+	protected override void OnInitialized()
+	{
+		ThemeService.OnThemeChanged += StateHasChanged;
+	}
+
+	public void Dispose()
+	{
+		ThemeService.OnThemeChanged -= StateHasChanged;
+	}
+}

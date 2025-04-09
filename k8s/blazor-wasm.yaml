@@ -1,0 +1,49 @@
+# ====================== #
+#     Blazor Client      #
+# ====================== #
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blazor-wasm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blazor-wasm
+  template:
+    metadata:
+      labels:
+        app: blazor-wasm
+    spec:
+      containers:
+        - name: blazor-wasm
+          image: DOCKER_HUB_USERNAME_REPLACE/blazor-wasm:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          env:
+            - name: USERS_AND_AUTH_URL
+              value: "USERS_AND_AUTH_URL_REPLACE"
+            - name: GAMEPLAY_URL
+              value: "GAMEPLAY_URL_REPLACE"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blazor-wasm-service
+spec:
+  selector:
+    app: blazor-wasm
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

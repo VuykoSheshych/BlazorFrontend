@@ -1,0 +1,56 @@
+@inject NavigationManager NavigationManager
+@inject CustomStateProvider AuthProvider
+
+<MudStack Spacing="2">
+	<MudText Typo="Typo.h5">Login</MudText>
+
+	<MudTextField @bind-Value="username" Label="Username" Variant="Variant.Filled" Class="mb-2" />
+	<MudTextField @bind-Value="password" Label="Password" Variant="Variant.Filled" InputType="InputType.Password"
+		Class="mb-2" />
+
+	@if (!string.IsNullOrEmpty(errorMessage))
+	{
+		<MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+	}
+
+	<MudButton OnClick="Login" Disabled="isLoading" Variant="Variant.Filled" Color="Color.Primary">
+		@if (isLoading)
+		{
+			<MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="mr-2" />
+			<MudText>Logging in...</MudText>
+		}
+		else
+		{
+			<MudText>Login</MudText>
+		}
+	</MudButton>
+</MudStack>
+
+@code {
+	private string username = string.Empty;
+	private string password = string.Empty;
+	private bool isLoading = false;
+	private string errorMessage = string.Empty;
+
+	private async Task Login()
+	{
+		errorMessage = string.Empty;
+		isLoading = true;
+
+		var loginDto = new LoginDto(username, password);
+
+		try
+		{
+			await AuthProvider.Login(loginDto);
+			NavigationManager.NavigateTo("/");
+		}
+		catch (Exception ex)
+		{
+			errorMessage = ex.Message;
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+}

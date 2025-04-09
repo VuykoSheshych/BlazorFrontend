@@ -1,0 +1,68 @@
+@inject NavigationManager NavigationManager
+@inject CustomStateProvider AuthProvider
+
+<MudText Typo="Typo.h5">Registration</MudText>
+
+<MudStack Spacing="2">
+	<MudTextField @bind-Value="username" Label="Username" Variant="Variant.Filled" />
+	<MudTextField @bind-Value="email" Label="Email" Variant="Variant.Filled" />
+	<MudTextField @bind-Value="password" Label="Password" Variant="Variant.Filled" InputType="InputType.Password" />
+	<MudTextField @bind-Value="confirmPassword" Label="Confirm password" Variant="Variant.Filled"
+		InputType="InputType.Password" />
+
+
+	@if (!string.IsNullOrEmpty(errorMessage))
+	{
+		<MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+	}
+
+	<MudButton OnClick="Register" Disabled="isLoading" Variant="Variant.Filled" Color="Color.Secondary">
+		@if (isLoading)
+		{
+			<MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="mr-2" />
+			<MudText>Registration...</MudText>
+		}
+		else
+		{
+			<MudText>Register</MudText>
+		}
+	</MudButton>
+</MudStack>
+
+@code {
+	private string username = string.Empty;
+	private string email = string.Empty;
+	private string password = string.Empty;
+	private string confirmPassword = string.Empty;
+	private string errorMessage = string.Empty;
+	private bool isLoading = false;
+
+	private async Task Register()
+	{
+		errorMessage = string.Empty;
+		isLoading = true;
+
+		if (password != confirmPassword)
+		{
+			errorMessage = "Passwords do not match.";
+			isLoading = false;
+			return;
+		}
+
+		var registerDto = new RegisterDto(username, email, password);
+
+		try
+		{
+			await AuthProvider.Register(registerDto);
+			NavigationManager.NavigateTo("/login");
+		}
+		catch (Exception ex)
+		{
+			errorMessage = ex.Message;
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+}

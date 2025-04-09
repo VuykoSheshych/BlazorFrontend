@@ -1,0 +1,67 @@
+@page "/game/search"
+
+@attribute [Authorize]
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject GameHubClient GameHubClient
+@inject UserSharedService UserSharedService
+
+<PageTitle>Game Search</PageTitle>
+
+<MudButton IconClass="fas fa-search" Color="Color.Success" Variant="Variant.Filled" @onclick="() => StartGameSearch()">
+	Start search
+</MudButton>
+
+<MudButton IconClass="fas fa-search" Color="Color.Error" Variant="Variant.Filled" @onclick="() => StopGameSearch()">
+	Stop search
+</MudButton>
+
+@if (isSearching)
+{
+	<p>Search opponent to game...</p>
+	<MudProgressCircular Indeterminate Color="Color.Primary" />
+}
+
+@code {
+	private List<string> users = new List<string>();
+	private string currentUser = string.Empty;
+	private bool isSearching = false;
+	protected override async Task OnInitializedAsync()
+	{
+		currentUser = await UserSharedService.GetCurrentUserNameAsync();
+
+		GameHubClient.OnGameFound += OnGameFound;
+	}
+
+	public async Task StopGameSearch()
+	{
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			await GameHubClient.StopGameSearch(currentUser);
+			isSearching = false;
+		}
+	}
+	private async Task StartGameSearch()
+	{
+		isSearching = true;
+
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			await GameHubClient.StartGameSearch(currentUser);
+		}
+	}
+	private void OnGameFound(string gameId)
+	{
+		isSearching = false;
+		StateHasChanged();
+
+		NavigationManager.NavigateTo($"/game/active/{gameId}");
+	}
+	public void Dispose()
+	{
+		if (GameHubClient != null)
+		{
+			GameHubClient.OnGameFound -= OnGameFound;
+		}
+	}
+}
