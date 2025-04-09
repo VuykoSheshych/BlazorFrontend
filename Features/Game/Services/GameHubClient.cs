@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.AspNetCore.Components;
 using ChessShared.Models;
 using ChessShared.Dtos;
 
@@ -11,10 +10,10 @@ public class GameHubClient
 	public event Action<string>? OnGameFound;
 	public event Action<MoveResultDto>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
-	public GameHubClient(NavigationManager navigationManager)
+	public GameHubClient(IHttpClientFactory httpClientFactory)
 	{
 		_hubConnection = new HubConnectionBuilder()
-			.WithUrl(navigationManager.ToAbsoluteUri(Environment.GetEnvironmentVariable("GAMEPLAY_URL") + "/gameHub"))
+			.WithUrl(httpClientFactory.CreateClient("GamePlayAPI").BaseAddress + "gameplay/gameHub")
 			.WithAutomaticReconnect()
 			.Build();
 

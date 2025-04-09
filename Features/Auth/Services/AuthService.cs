@@ -11,14 +11,14 @@ public class AuthService
 
 	public AuthService(IHttpClientFactory httpClientFactory)
 	{
-		_httpClient = httpClientFactory.CreateClient("UsersAndAuth");
+		_httpClient = httpClientFactory.CreateClient("UsersAndAuthAPI");
 		_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		_httpClient.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
 	}
 
 	public async Task RegisterAsync(RegisterDto model)
 	{
-		var result = await _httpClient.PostAsJsonAsync("auth/register", model);
+		var result = await _httpClient.PostAsJsonAsync("api/auth/register", model);
 
 		if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
 			throw new Exception(await result.Content.ReadAsStringAsync());
@@ -28,7 +28,7 @@ public class AuthService
 
 	public async Task LoginAsync(LoginDto model)
 	{
-		var result = await _httpClient.PostAsJsonAsync("auth/login", model);
+		var result = await _httpClient.PostAsJsonAsync("api/auth/login", model);
 
 		if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
 			throw new Exception(await result.Content.ReadAsStringAsync());
@@ -38,13 +38,13 @@ public class AuthService
 
 	public async Task LogoutAsync()
 	{
-		var result = await _httpClient.PostAsync("auth/logout", null);
+		var result = await _httpClient.PostAsync("api/auth/logout", null);
 		result.EnsureSuccessStatusCode();
 	}
 
 	public async Task<CurrentUser?> GetCurrentUserInfo()
 	{
-		var result = await _httpClient.GetFromJsonAsync<CurrentUser>("auth/currentuserinfo");
+		var result = await _httpClient.GetFromJsonAsync<CurrentUser>("api/auth/currentuserinfo");
 		return result;
 	}
 }

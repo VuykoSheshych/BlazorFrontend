@@ -5,14 +5,32 @@ using BlazorFrontend.Shared.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using BlazorFrontend.Features.Auth.Services;
 using MudBlazor.Services;
+using BlazorFrontend.Features.Game.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddHttpClient("UsersAndAuth", client =>
+string? usersAndAuthApiUrl;
+string? gamePlayApiUrl;
+
+Console.WriteLine($"👋 Environment: {builder.HostEnvironment.Environment}");
+Console.WriteLine($"👋 BaseAddress: {builder.HostEnvironment.BaseAddress}");
+
+if (builder.HostEnvironment.Environment == "Development")
 {
-	client.BaseAddress = new Uri("https://localhost:7187/api/");
+	usersAndAuthApiUrl = "https://localhost:7187";
+	gamePlayApiUrl = "https://localhost:7251";
+}
+else
+{
+	usersAndAuthApiUrl = builder.HostEnvironment.BaseAddress;
+	gamePlayApiUrl = builder.HostEnvironment.BaseAddress;
+}
+
+builder.Services.AddHttpClient("UsersAndAuthAPI", client =>
+{
+	client.BaseAddress = new Uri(usersAndAuthApiUrl);
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
@@ -24,15 +42,22 @@ builder.Services.AddHttpClient("UsersAndAuth", client =>
 	handlers.Add(new IncludeCredentialsHandler());
 });
 
+builder.Services.AddHttpClient("GamePlayAPI", client =>
+{
+	client.BaseAddress = new Uri(gamePlayApiUrl);
+});
+
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddScoped<CustomStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<CustomStateProvider>());
 builder.Services.AddScoped<UserSharedService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GameHubClient>();
 builder.Services.AddSingleton<ThemeService>();
 
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("UsersAndAuth"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("UsersAndAuthAPI"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("GamePlayAPI"));
 
 builder.Services.AddMudServices();
 

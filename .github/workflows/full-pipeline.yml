@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Publish to DockerHub
     environment: Production
+    env:
+      BLAZOR_ENVIRONMENT: Production
 
     steps:
       - name: Checkout repository
@@ -47,7 +49,7 @@ jobs:
         run: dotnet restore BlazorFrontend.csproj
 
       - name: Publish project
-        run: dotnet publish BlazorFrontend.csproj -c Release -o ./publish --no-restore
+        run: dotnet publish BlazorFrontend.csproj -c Release -o ./publish --no-restore -p:BlazorEnvironment=Production
 
       - name: Log in to DockerHub
         run: |
@@ -55,7 +57,10 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-wasm:latest -f Dockerfile .
+          docker build \
+            --build-arg BLAZOR_ENVIRONMENT=$BLAZOR_ENVIRONMENT \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-wasm:latest \
+            -f Dockerfile .          
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/blazor-wasm:latest
 
   deploy:
@@ -80,14 +85,9 @@ jobs:
           export KUBECONFIG=$(pwd)/kubeconfig
           kubectl cluster-info
 
-      - name: Apply Kubernetes manifests
+      - name: Deploy to Kubernetes
         run: |
           sed -i 's|DOCKER_HUB_USERNAME_REPLACE|${{ secrets.DOCKER_HUB_USERNAME }}|g' k8s/blazor-wasm.yaml
-          sed -i 's|GAMEPLAY_URL_REPLACE|${{ secrets.GAMEPLAY_URL }}|g' k8s/blazor-wasm.yaml
-          sed -i 's|USERS_AND_AUTH_URL_REPLACE|${{ secrets.USERS_AND_AUTH_URL }}|g' k8s/blazor-wasm.yaml
           kubectl apply -f k8s/
-
-      - name: Update deployment images
-        run: |
           kubectl set image deployment/blazor-wasm blazor-wasm=${{ secrets.DOCKER_HUB_USERNAME }}/blazor-wasm:latest
           kubectl rollout restart deployment/blazor-wasm

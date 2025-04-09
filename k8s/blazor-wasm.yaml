@@ -28,11 +28,6 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
-          env:
-            - name: USERS_AND_AUTH_URL
-              value: "USERS_AND_AUTH_URL_REPLACE"
-            - name: GAMEPLAY_URL
-              value: "GAMEPLAY_URL_REPLACE"
 
 ---
 apiVersion: v1
