@@ -1,0 +1,51 @@
+@page "/games"
+
+@inject GameRecordService GameRecordService
+@inject NavigationManager NavigationManager
+
+<h3>Chess games list</h3>
+
+@if (games == null)
+{
+	<p>Loading...</p>
+}
+else if (games.Count == 0)
+{
+	<p>No games.</p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>White</th>
+				<th>Black</th>
+				<th>Result</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var game in games)
+			{
+				<tr>
+					<td>
+						<a href="games/@game.Id">@game.Id</a>
+					</td>
+					<td>@game.PlayerWhite</td>
+					<td>@game.PlayerBlack</td>
+					<td>@game.Result</td>
+					<td>@game.Date.ToString("yyyy-MM-dd HH:mm")</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	private List<GameRecord>? games;
+	protected override async Task OnInitializedAsync()
+	{
+		games = await GameRecordService.GetGamesAsync();
+	}
+}

@@ -1,0 +1,30 @@
+﻿@page "/"
+
+<PageTitle>Online Chess</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
+	<MudPaper Elevation="4" Class="p-6 pa-4">
+		<MudText Typo="Typo.h4" GutterBottom="true">♕ Wellcome to Online Chess by Vuyko!</MudText>
+
+		<MudText Typo="Typo.body1" Class="mb-4">
+			Play real-time chess with your friends and other players. Analyze your games, build your profile, and have
+			fun!
+		</MudText>
+
+		<MudStack Row Spacing="2">
+			<MudButton Variant="Variant.Filled" Color="Color.Primary"
+				OnClick="@(() => NavigationManager.NavigateTo("/game/search"))">
+				Play Now
+			</MudButton>
+
+			<MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+				OnClick="@(() => NavigationManager.NavigateTo("/register"))">
+				Create Account
+			</MudButton>
+		</MudStack>
+	</MudPaper>
+</MudContainer>
+
+@code {
+	[Inject] NavigationManager NavigationManager { get; set; } = default!;
+}

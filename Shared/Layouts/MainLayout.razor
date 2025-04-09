@@ -1,0 +1,77 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject CustomStateProvider AuthProvider
+@inject AuthService AuthService
+@inject ThemeService ThemeService
+
+@implements IDisposable
+
+<MudLayout>
+	<MudAppBar Color="Color.Primary" Elevation="4">
+		<MudText Typo="Typo.h6" Class="ml-2 cursor-pointer" @onclick="@(() => NavigationManager.NavigateTo("/"))">♕
+			Chess Online
+		</MudText>
+
+		<MudSpacer />
+
+		<MudIconButton Icon="@themeIcon" Color="Color.Inherit" OnClick="ToggleTheme" Class="mr-2" />
+
+		@if (authState is not null && authState.User.Identity?.IsAuthenticated == true)
+		{
+			<MudText Class="mr-4">👋 Hi, @authState.User.Identity.Name!</MudText>
+			<MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="Logout">Logout</MudButton>
+		}
+		else
+		{
+			<MudButton Variant="Variant.Text" OnClick="@(() => NavigationManager.NavigateTo("/login"))">Login
+			</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-2"
+				OnClick="@(() => NavigationManager.NavigateTo("/register"))">
+				Registration
+			</MudButton>
+		}
+	</MudAppBar>
+
+	@if (authState != null)
+	{
+		<MudDrawer Open="true" Variant="DrawerVariant.Mini">
+			<MudNavMenu>
+				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Main page</MudNavLink>
+				<MudNavLink Href="/game" Icon="@Icons.Material.Filled.VideogameAsset">Play</MudNavLink>
+				<MudNavLink Href="/about" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+			</MudNavMenu>
+		</MudDrawer>
+	}
+
+	<MudMainContent Class="pa-4 pt-16">
+		@Body
+	</MudMainContent>
+</MudLayout>
+
+@code {
+	private AuthenticationState? authState;
+	private bool isDarkMode = false;
+	private string themeIcon => isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode;
+	protected override void OnInitialized()
+	{
+		ThemeService.OnThemeChanged += StateHasChanged;
+		isDarkMode = ThemeService.IsDarkMode;
+	}
+	protected override async Task OnParametersSetAsync()
+	{
+		authState = await AuthProvider.GetAuthenticationStateAsync();
+	}
+	public void Dispose()
+	{
+		ThemeService.OnThemeChanged -= StateHasChanged;
+	}
+	private void ToggleTheme()
+	{
+		ThemeService.ToggleTheme();
+	}
+	private async Task Logout()
+	{
+		await AuthService.LogoutAsync();
+		NavigationManager.NavigateTo("/");
+	}
+}
