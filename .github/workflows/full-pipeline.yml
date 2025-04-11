@@ -49,7 +49,7 @@ jobs:
         run: dotnet restore BlazorFrontend.csproj
 
       - name: Publish project
-        run: dotnet publish BlazorFrontend.csproj -c Release -o ./publish --no-restore -p:BlazorEnvironment=Production
+        run: dotnet publish BlazorFrontend.csproj -c Release -o ./publish --no-restore
 
       - name: Log in to DockerHub
         run: |
