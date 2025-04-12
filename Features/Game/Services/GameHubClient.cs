@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using ChessShared.Models;
 using ChessShared.Dtos;
+using System.Text.Json;
 
 namespace BlazorFrontend.Features.Game.Services;
 public class GameHubClient
@@ -19,9 +20,11 @@ public class GameHubClient
 
 		_hubConnection.On<MoveResultDto>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
-		_hubConnection.On<GameSession>("ReceiveGameState", async gameSession =>
+		_hubConnection.On<string>("ReceiveGameState", async json =>
 		{
-			if (OnGameStateReceived != null)
+			var gameSession = JsonSerializer.Deserialize<GameSession>(json);
+
+			if (gameSession != null && OnGameStateReceived != null)
 				await OnGameStateReceived.Invoke(gameSession);
 		});
 		_hubConnection.On<string>("GameFinished", async looser =>

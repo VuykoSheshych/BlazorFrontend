@@ -14,9 +14,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 string? usersAndAuthApiUrl;
 string? gamePlayApiUrl;
 
-Console.WriteLine($"👋 Environment: {builder.HostEnvironment.Environment}");
-Console.WriteLine($"👋 BaseAddress: {builder.HostEnvironment.BaseAddress}");
-
 if (builder.HostEnvironment.Environment == "Development")
 {
 	usersAndAuthApiUrl = "https://localhost:7187";
@@ -54,6 +51,7 @@ builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredServic
 builder.Services.AddScoped<UserSharedService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GameHubClient>();
+builder.Services.AddScoped<GameRecordService>();
 builder.Services.AddSingleton<ThemeService>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("UsersAndAuthAPI"));
