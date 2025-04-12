@@ -6,22 +6,22 @@ namespace BlazorFrontend.Shared.Services;
 
 public class UserSharedService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider)
 {
-	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("UsersAndAuth");
+	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("UsersAndAuthAPI");
 	private readonly AuthenticationStateProvider _authenticationStateProvider = authenticationStateProvider;
 
 	public async Task<UserDto?> GetUserByIdAsync(string id)
 	{
-		return await _httpClient.GetFromJsonAsync<UserDto>($"users/id-{id}");
+		return await _httpClient.GetFromJsonAsync<UserDto>($"api/users/id-{id}");
 	}
 
 	public async Task<UserDto?> GetUserByUserNameAsync(string userName)
 	{
-		return await _httpClient.GetFromJsonAsync<UserDto>($"users/username-{userName}");
+		return await _httpClient.GetFromJsonAsync<UserDto>($"api/users/username-{userName}");
 	}
 
 	public async Task<List<UserDto>?> GetUsersAsync()
 	{
-		return await _httpClient.GetFromJsonAsync<List<UserDto>>("users");
+		return await _httpClient.GetFromJsonAsync<List<UserDto>>("api/users");
 	}
 
 	public async Task<string> GetCurrentUserNameAsync()
