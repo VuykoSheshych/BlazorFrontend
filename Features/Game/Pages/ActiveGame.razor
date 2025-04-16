@@ -9,42 +9,57 @@
 
 @if (gameSession is not null)
 {
-	<MudAvatar Size="Size.Medium">
-		<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
-	</MudAvatar>
-	<MudText Inline Typo="Typo.h5"> @(GetOpponentPlayer()?.Name) (@(GetOpponentPlayer()?.EloRating))</MudText>
+	<MudCard Class="pa-4" Elevation="4">
+		<MudGrid Spacing="3">
 
-	<MudGrid Spacing="6">
-		<MudItem xs="12" sm="12" md="6" lg="6" xl="6" class="d-flex align-center justify-center">
-			<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick" IsBlack="@(currentUserName == blackPlayer?.Name)"
-				SelectedSquare="@selectedSquare" />
-		</MudItem>
+			<MudItem xs="12" sm="6" class="d-flex flex-column align-center">
+				<MudAvatar Size="Size.Large" Class="mb-1">
+					<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
+				</MudAvatar>
+				<MudText Typo="Typo.h6">@GetOpponentPlayer()?.Name (@GetOpponentPlayer()?.EloRating)</MudText>
+			</MudItem>
 
-		<MudItem xs="12" sm="12" md="4" lg="4" xl="4">
-			<MudGrid Spacing="5" Justify="Justify.Center">
-				<MudItem xs="12" class="d-flex align-center">
-					<GameNotation Moves="gameSession.Moves"></GameNotation>
-				</MudItem>
+			<MudItem xs="12" sm="6" class="d-flex flex-column align-center">
+				<MudAvatar Size="Size.Large" Class="mb-1">
+					<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
+				</MudAvatar>
+				<MudText Typo="Typo.h6">@GetCurrentPlayer()?.Name (@GetCurrentPlayer()?.EloRating)</MudText>
+			</MudItem>
 
-				<MudItem xs="12" class="d-flex align-center">
-					<MudButton Variant="Variant.Outlined" Color="Color.Warning"
-						@onclick="() => FinishGame(currentUserName!)">
-						<MudText Typo="Typo.body1">Concede</MudText>
+			<MudItem xs="12">
+				<MudDivider />
+			</MudItem>
+
+			<MudItem xs="12" md="8" class="d-flex align-center justify-center">
+				<MudPaper Class="pa-2" Elevation="2">
+					<ChessBoard Board="chessBoard" OnSquareClicked="OnSquareClick"
+						IsBlack="@(currentUserName == blackPlayer?.Name)" SelectedSquare="@selectedSquare" />
+				</MudPaper>
+			</MudItem>
+
+			<MudItem xs="12" md="4">
+				<MudPaper Class="pa-3" Elevation="1">
+					<MudText Typo="Typo.subtitle1" Class="mb-2">Moves</MudText>
+					<GameNotation Moves="gameSession.Moves" />
+
+					<MudDivider Class="my-2" />
+
+					<MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth
+						StartIcon="@Icons.Material.Filled.Flag" OnClick="() => FinishGame(currentUserName!)">
+						Concede
 					</MudButton>
-				</MudItem>
-			</MudGrid>
-		</MudItem>
-	</MudGrid>
+				</MudPaper>
+			</MudItem>
 
-	<MudAvatar Size="Size.Medium">
-		<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
-	</MudAvatar>
-	<MudText Inline Typo="Typo.h5"> @(GetCurrentPlayer()?.Name) (@(GetCurrentPlayer()?.EloRating))</MudText>
+		</MudGrid>
+	</MudCard>
 }
 else
 {
-	<MudText Typo="Typo.h5">Downloading game...</MudText>
-	<MudProgressCircular Indeterminate Color="Color.Primary" />
+	<MudPaper Class="pa-6 d-flex flex-column align-center justify-center" Elevation="0">
+		<MudText Typo="Typo.h5">Downloading game...</MudText>
+		<MudProgressCircular Class="mt-4" Indeterminate Color="Color.Primary" />
+	</MudPaper>
 }
 
 @code {
@@ -60,12 +75,12 @@ else
 	{
 		if (gameId is not null)
 		{
-			await GameHubClient.Connect();
-			currentUserName = await UserSharedService.GetCurrentUserNameAsync();
-
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;
 			GameHubClient.OnGameFinished += OnGameFinished;
+
+			await GameHubClient.Connect();
+			currentUserName = await UserSharedService.GetCurrentUserNameAsync();
 		}
 	}
 	private async Task OnSquareClick((int row, int col) position)

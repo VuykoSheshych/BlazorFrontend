@@ -3,44 +3,41 @@
 @inject GameRecordService GameRecordService
 @inject NavigationManager NavigationManager
 
-<h3>Chess games list</h3>
+<PageTitle>Saved Games</PageTitle>
 
-@if (games == null)
-{
-	<p>Loading...</p>
-}
-else if (games.Count == 0)
-{
-	<p>No games.</p>
-}
-else
-{
-	<table class="table">
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>White</th>
-				<th>Black</th>
-				<th>Result</th>
-				<th>Date</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var game in games)
-			{
-				<tr>
-					<td>
-						<a href="games/@game.Id">@game.Id</a>
-					</td>
-					<td>@game.PlayerWhite</td>
-					<td>@game.PlayerBlack</td>
-					<td>@game.Result</td>
-					<td>@game.Date.ToString("yyyy-MM-dd HH:mm")</td>
-				</tr>
-			}
-		</tbody>
-	</table>
-}
+<MudPaper Class="pa-4 ma-4" Elevation="2">
+	<MudText Typo="Typo.h5" Class="mb-4">Saved Chess Games</MudText>
+
+	@if (games == null)
+	{
+		<MudProgressCircular Indeterminate Color="Color.Primary" />
+	}
+	else if (games.Count == 0)
+	{
+		<MudText>No games found.</MudText>
+	}
+	else
+	{
+		<MudTable Items="games" Hover="true" Bordered="true" Striped="true">
+			<HeaderContent>
+				<MudTh>ID</MudTh>
+				<MudTh>White</MudTh>
+				<MudTh>Black</MudTh>
+				<MudTh>Result</MudTh>
+				<MudTh>Date</MudTh>
+			</HeaderContent>
+			<RowTemplate>
+				<MudTd>
+					<MudLink Href="@($"/games/{context.Id}")">@context.Id</MudLink>
+				</MudTd>
+				<MudTd>@context.PlayerWhite</MudTd>
+				<MudTd>@context.PlayerBlack</MudTd>
+				<MudTd>@context.Result</MudTd>
+				<MudTd>@context.Date.ToString("yyyy-MM-dd HH:mm")</MudTd>
+			</RowTemplate>
+		</MudTable>
+	}
+</MudPaper>
 
 @code {
 	private List<GameRecord>? games;

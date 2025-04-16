@@ -1,39 +1,65 @@
 @page "/game/search"
 
 @attribute [Authorize]
-@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject GameHubClient GameHubClient
 @inject UserSharedService UserSharedService
 
 <PageTitle>Game Search</PageTitle>
 
-<MudButton IconClass="fas fa-search" Color="Color.Success" Variant="Variant.Filled" @onclick="() => StartGameSearch()">
-	Start search
-</MudButton>
+<MudPaper Class="pa-6 ma-4 d-flex flex-column align-center justify-center" Elevation="3">
+	<MudText Typo="Typo.h5" Class="mb-4">Find a Game</MudText>
 
-<MudButton IconClass="fas fa-search" Color="Color.Error" Variant="Variant.Filled" @onclick="() => StopGameSearch()">
-	Stop search
-</MudButton>
+	<MudStack Spacing="2" Class="mb-4">
+		<MudSelect @bind-Value="selectedTimeControll" Label="Choose time control" Placeholder="Not implemented yet :("
+			AdornmentIcon="@Icons.Material.Filled.Timer" AdornmentColor="Color.Primary">
+			<MudSelectItem Value="@("Blitz")" Disabled="true">Blitz: 3|2 (disabled)</MudSelectItem>
+			<MudSelectItem Value="@("Rapid")" Disabled="true">Rapid: 15|10 (disabled)</MudSelectItem>
+			<MudSelectItem Value="@("Classic")" Disabled="true">Classic: 60|30 (disabled)</MudSelectItem>
+		</MudSelect>
 
-@if (isSearching)
-{
-	<p>Search opponent to game...</p>
-	<MudProgressCircular Indeterminate Color="Color.Primary" />
-}
+		<MudButton StartIcon="@mainButtonIcon" Color="@mainButtonColor" Variant="Variant.Filled" OnClick="ToggleSearch"
+			Class="mb-4">
+			@mainButtonText
+		</MudButton>
+	</MudStack>
+
+	@if (isSearching)
+	{
+		<MudText Typo="Typo.subtitle1" Color="Color.Primary">Searching for an opponent...</MudText>
+		<MudProgressCircular Indeterminate Color="Color.Primary" Size="Size.Large" Class="mt-2" />
+	}
+</MudPaper>
 
 @code {
-	private List<string> users = new List<string>();
 	private string currentUser = string.Empty;
+	private string selectedTimeControll = string.Empty;
 	private bool isSearching = false;
+	private string mainButtonText => isSearching ? "Stop Search" : "Start Search";
+	private Color mainButtonColor => isSearching ? Color.Error : Color.Success;
+	private string mainButtonIcon => isSearching ? Icons.Material.Filled.Cancel : Icons.Material.Filled.Search;
+
 	protected override async Task OnInitializedAsync()
 	{
 		currentUser = await UserSharedService.GetCurrentUserNameAsync();
-
 		GameHubClient.OnGameFound += OnGameFound;
 	}
-
-	public async Task StopGameSearch()
+	private async Task ToggleSearch()
+	{
+		if (isSearching)
+			await StopGameSearch();
+		else
+			await StartGameSearch();
+	}
+	private async Task StartGameSearch()
+	{
+		if (!string.IsNullOrEmpty(currentUser))
+		{
+			await GameHubClient.StartGameSearch(currentUser);
+			isSearching = true;
+		}
+	}
+	private async Task StopGameSearch()
 	{
 		if (!string.IsNullOrEmpty(currentUser))
 		{
@@ -41,27 +67,16 @@
 			isSearching = false;
 		}
 	}
-	private async Task StartGameSearch()
-	{
-		isSearching = true;
 
-		if (!string.IsNullOrEmpty(currentUser))
-		{
-			await GameHubClient.StartGameSearch(currentUser);
-		}
-	}
 	private void OnGameFound(string gameId)
 	{
 		isSearching = false;
 		StateHasChanged();
-
 		NavigationManager.NavigateTo($"/game/active/{gameId}");
 	}
+
 	public void Dispose()
 	{
-		if (GameHubClient != null)
-		{
-			GameHubClient.OnGameFound -= OnGameFound;
-		}
+		GameHubClient.OnGameFound -= OnGameFound;
 	}
 }

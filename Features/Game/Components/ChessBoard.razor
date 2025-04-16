@@ -1,8 +1,8 @@
-<MudGrid Spacing="0">
+<MudGrid Spacing="0" Justify="Justify.Center" Class="chess-board">
 	@foreach (var row in GetRowOrder())
 	{
 		<MudItem xs="12">
-			<MudGrid Spacing="0">
+			<MudGrid Spacing="0" Justify="Justify.Center">
 				@foreach (var col in GetColOrder())
 				{
 					var isSelected = SelectedSquare?.row == row && SelectedSquare?.col == col;
