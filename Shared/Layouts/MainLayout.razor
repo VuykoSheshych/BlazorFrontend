@@ -16,10 +16,12 @@
 
 		<MudIconButton Icon="@themeIcon" Color="Color.Inherit" OnClick="ToggleTheme" Class="mr-2" />
 
+		<MudIconButton Icon="@Icons.Material.Outlined.Notifications" Color="Color.Inherit" />
+
 		@if (authState is not null && authState.User.Identity?.IsAuthenticated == true)
 		{
 			<MudText Class="mr-4">👋 Hi, @authState.User.Identity.Name!</MudText>
-			<MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="Logout">Logout</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
 		}
 		else
 		{
@@ -51,12 +53,10 @@
 
 @code {
 	private AuthenticationState? authState;
-	private bool isDarkMode = false;
-	private string themeIcon => isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode;
+	private string themeIcon => ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode;
 	protected override void OnInitialized()
 	{
 		ThemeService.OnThemeChanged += StateHasChanged;
-		isDarkMode = ThemeService.IsDarkMode;
 	}
 	protected override async Task OnParametersSetAsync()
 	{

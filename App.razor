@@ -1,7 +1,7 @@
 ﻿<MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
-<MudThemeProvider Theme="@(ThemeService.IsDarkMode? ThemeService.DarkTheme: ThemeService.LightTheme)" />
+<MudThemeProvider Theme="@ThemeService.CustomTheme" IsDarkMode="@ThemeService.IsDarkMode" />
 <CascadingAuthenticationState>
 	<Router AppAssembly="@typeof(App).Assembly">
 		<Found Context="routeData">

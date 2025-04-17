@@ -1,4 +1,4 @@
-<MudGrid Spacing="0" Justify="Justify.Center" Class="chess-board">
+<MudGrid Spacing="0" Justify="Justify.Center">
 	@foreach (var row in GetRowOrder())
 	{
 		<MudItem xs="12">
@@ -9,12 +9,11 @@
 					var squareColor = isSelected ? Colors.Blue.Lighten2 : (row + col) % 2 == 0
 					? Colors.Yellow.Accent1 : Colors.Gray.Darken1;
 
-					<MudPaper Style="@($"background:{squareColor};")">
-						<MudButton Style="height:60px; width:60px;" Class="align-center justify-center mud-width-full py-8"
-							Variant="Variant.Filled" OnClick="() => OnSquareClick(row, col)">
-							<MudText Typo="Typo.h3">@GetPieceSymbol(row, col)</MudText>
-						</MudButton>
-					</MudPaper>
+					<MudButton Style="@($"background:{squareColor}; height:60px; width:60px;")"
+						Class="align-center justify-center mud-width-full py-8 rounded-0" Variant="Variant.Filled"
+						OnClick="() => OnSquareClick(row, col)">
+						<MudText Color="Color.Dark" Typo="Typo.h3">@GetPieceSymbol(row, col)</MudText>
+					</MudButton>
 				}
 			</MudGrid>
 		</MudItem>
