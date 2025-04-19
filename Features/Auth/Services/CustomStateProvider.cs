@@ -15,7 +15,7 @@ public class CustomStateProvider(AuthService authService) : AuthenticationStateP
 
 		try
 		{
-			var userInfo = await authService.GetCurrentUserInfo();
+			var userInfo = await GetCachedUserAsync();
 			if (userInfo is { IsAuthenticated: true })
 			{
 				var claims = new[] { new Claim(ClaimTypes.Name, userInfo.UserName) }

@@ -1,13 +1,13 @@
 using System.Net.Http.Json;
+using BlazorFrontend.Features.Auth.Services;
 using ChessShared.Dtos;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace BlazorFrontend.Shared.Services;
 
-public class UserSharedService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider)
+public class UserSharedService(IHttpClientFactory httpClientFactory, CustomStateProvider customStateProvider)
 {
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("UsersAndAuthAPI");
-	private readonly AuthenticationStateProvider _authenticationStateProvider = authenticationStateProvider;
+	private readonly CustomStateProvider _customStateProvider = customStateProvider;
 
 	public async Task<UserDto?> GetUserByIdAsync(string id)
 	{
@@ -26,13 +26,13 @@ public class UserSharedService(IHttpClientFactory httpClientFactory, Authenticat
 
 	public async Task<string> GetCurrentUserNameAsync()
 	{
-		var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+		var state = await _customStateProvider.GetAuthenticationStateAsync();
 		return state.User.Identity?.Name ?? string.Empty;
 	}
 
 	public async Task<string> GetCurrentUserIdAsync()
 	{
-		var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+		var state = await _customStateProvider.GetAuthenticationStateAsync();
 		return state.User.FindFirst("sub")?.Value ?? string.Empty;
 	}
 }
