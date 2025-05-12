@@ -1,0 +1,53 @@
+@page "/user/name={userName}"
+@inject UserSharedService UserSharedService
+@inject NavigationManager NavigationManager
+
+
+<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 1200px;">
+	@if (user == null)
+	{
+		<MudProgressCircular Indeterminate="true" />
+	}
+	else
+	{
+		<MudGrid>
+			<MudItem xs="12" md="6" Class="d-flex justify-center align-center">
+				<MudAvatar Size="Size.Large" Class="mud-elevation-4" Style="width: 300px; height: 300px;">
+					<MudImage Src="@(AvatarService.GetAvatarUrl(user.Avatar))" />
+				</MudAvatar>
+			</MudItem>
+			<MudItem xs="12" md="6">
+				<MudText Typo="Typo.h4" GutterBottom="true">@user.Name</MudText>
+				<MudDivider Class="mb-2" />
+				<MudText Typo="Typo.subtitle1"><b>Elo Rating:</b> @user.EloRating</MudText>
+
+				@if (isCurrentUser)
+				{
+					<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
+						Class="mt-4" OnClick="@(() => NavigationManager.NavigateTo("/user/edit-profile"))">
+						Edit profile
+					</MudButton>
+				}
+			</MudItem>
+		</MudGrid>
+	}
+</MudPaper>
+
+@code {
+	[Parameter] public required string userName { get; set; }
+	private UserDto? user;
+	private bool isCurrentUser;
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await UserSharedService.GetUserByUserNameAsync(userName);
+
+		if (user == null)
+		{
+			NavigationManager.NavigateTo("/404");
+			return;
+		}
+
+		isCurrentUser = userName == await UserSharedService.GetCurrentUserNameAsync();
+	}
+}

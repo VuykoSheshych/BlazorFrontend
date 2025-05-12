@@ -14,14 +14,14 @@
 
 			<MudItem xs="12" sm="6" class="d-flex flex-column align-center">
 				<MudAvatar Size="Size.Large" Class="mb-1">
-					<MudImage Src="@(GetOpponentPlayer()?.AvatarUrl)" />
+					<MudImage Src="@(AvatarService.GetAvatarUrl(GetOpponentPlayer()?.Avatar))" />
 				</MudAvatar>
 				<MudText Typo="Typo.h6">@GetOpponentPlayer()?.Name (@GetOpponentPlayer()?.EloRating)</MudText>
 			</MudItem>
 
 			<MudItem xs="12" sm="6" class="d-flex flex-column align-center">
 				<MudAvatar Size="Size.Large" Class="mb-1">
-					<MudImage Src="@(GetCurrentPlayer()?.AvatarUrl)" />
+					<MudImage Src="@(AvatarService.GetAvatarUrl(GetCurrentPlayer()?.Avatar))" />
 				</MudAvatar>
 				<MudText Typo="Typo.h6">@GetCurrentPlayer()?.Name (@GetCurrentPlayer()?.EloRating)</MudText>
 			</MudItem>

@@ -8,6 +8,7 @@ public class UserSharedService(IHttpClientFactory httpClientFactory, CustomState
 {
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("UsersAndAuthAPI");
 	private readonly CustomStateProvider _customStateProvider = customStateProvider;
+	public event Action? OnUserProfileUpdated;
 
 	public async Task<UserDto?> GetUserByIdAsync(string id)
 	{
@@ -28,6 +29,16 @@ public class UserSharedService(IHttpClientFactory httpClientFactory, CustomState
 	{
 		var state = await _customStateProvider.GetAuthenticationStateAsync();
 		return state.User.Identity?.Name ?? string.Empty;
+	}
+
+	public async Task UpdateUserAsync(UserDto user)
+	{
+		var response = await _httpClient.PostAsJsonAsync($"api/users/update-user/{user.Id}", user);
+
+		if (response.IsSuccessStatusCode)
+			OnUserProfileUpdated?.Invoke();
+		else
+			throw new Exception("Failed to update user profile");
 	}
 
 	public async Task<string> GetCurrentUserIdAsync()

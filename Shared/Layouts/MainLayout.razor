@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject UserSharedService UserSharedService
 @inject CustomStateProvider AuthProvider
 @inject AuthService AuthService
 @inject ThemeService ThemeService
@@ -20,7 +21,8 @@
 
 		@if (authState is not null && authState.User.Identity?.IsAuthenticated == true)
 		{
-			<MudText Class="mr-4">👋 Hi, @authState.User.Identity.Name!</MudText>
+			<MudText Class="mr-4">@authState.User.Identity.Name</MudText>
+			<MudIconButton Icon="@Icons.Material.Outlined.Photo" Color="Color.Inherit" OnClick="OpenProfile" />
 			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
 		}
 		else
@@ -57,14 +59,24 @@
 	protected override void OnInitialized()
 	{
 		ThemeService.OnThemeChanged += StateHasChanged;
+		UserSharedService.OnUserProfileUpdated += UpdateAuthState;
 	}
 	protected override async Task OnParametersSetAsync()
 	{
 		authState = await AuthProvider.GetAuthenticationStateAsync();
 	}
+	private void UpdateAuthState()
+	{
+		AuthProvider._cachedUser = null;
+	}
+	private void OpenProfile()
+	{
+		NavigationManager.NavigateTo($"/user/name={authState?.User.Identity?.Name}");
+	}
 	public void Dispose()
 	{
 		ThemeService.OnThemeChanged -= StateHasChanged;
+		UserSharedService.OnUserProfileUpdated -= UpdateAuthState;
 	}
 	private void ToggleTheme()
 	{

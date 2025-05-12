@@ -7,7 +7,7 @@ namespace BlazorFrontend.Features.Auth.Services;
 
 public class CustomStateProvider(AuthService authService) : AuthenticationStateProvider
 {
-	private CurrentUser? _cachedUser;
+	public CurrentUser? _cachedUser;
 
 	public override async Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
