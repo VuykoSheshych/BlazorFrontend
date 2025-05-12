@@ -1,0 +1,114 @@
+@page "/user/edit-profile"
+@inject UserSharedService UserSharedService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 1200px;">
+	<MudText Typo="Typo.h5" Class="mb-4">Edit profile</MudText>
+
+	@if (isLoading)
+	{
+		<MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+	}
+	else if (user != null)
+	{
+		<MudGrid>
+			<MudItem xs="12" sm="6">
+				<MudAvatar Size="Size.Large" Class="mud-elevation-4" Style="width: 250px; height: 250px;">
+					<MudImage Src="@avatarDataUrl" />
+				</MudAvatar>
+
+				<MudFileUpload T="IBrowserFile" Accept=".png, .jpg, .jpeg" MaximumFileCount="1"
+					FilesChanged="UploadPicture">
+					<ActivatorContent>
+						<MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Image" Label="Load picture" />
+					</ActivatorContent>
+				</MudFileUpload>
+			</MudItem>
+
+			<MudItem xs="12" sm="6">
+				<MudTextField @bind-Value="updatedName" Label="Name" Required="true" />
+			</MudItem>
+		</MudGrid>
+
+		<MudButton OnClick="SaveProfile" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4" Disabled="saving">
+			@if (saving)
+			{
+				<MudText Color="Color.Secondary">Saving...</MudText>
+				<MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+			}
+			else
+			{
+				<MudText Color="Color.Secondary">Save</MudText>
+				<MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" />
+			}
+		</MudButton>
+	}
+</MudPaper>
+
+@code {
+	private UserDto? user;
+	private string? avatarDataUrl;
+	private byte[]? avatarData;
+	private string? updatedName;
+	private bool isLoading = true;
+	private bool saving = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var currentUserName = await UserSharedService.GetCurrentUserNameAsync();
+		user = await UserSharedService.GetUserByUserNameAsync(currentUserName);
+
+		if (user == null)
+		{
+			NavigationManager.NavigateTo("/404");
+			return;
+		}
+
+		avatarData = user.Avatar;
+		updatedName = user.Name;
+		LoadAvatar();
+
+		isLoading = false;
+	}
+	private void LoadAvatar()
+	{
+		avatarDataUrl = AvatarService.GetAvatarUrl(avatarData);
+	}
+	private async Task UploadPicture(IBrowserFile newAvatarImage)
+	{
+		try
+		{
+			if (newAvatarImage != null)
+			{
+				using var stream = newAvatarImage.OpenReadStream(maxAllowedSize: 1 * 1024 * 1024); // 1MB
+				using var ms = new MemoryStream();
+				await stream.CopyToAsync(ms);
+				avatarData = ms.ToArray();
+
+				LoadAvatar();
+			}
+		}
+		catch (IOException ex) when (ex.Message.Contains("exceeds the maximum"))
+		{
+			Snackbar.Add("The selected image is too large. Maximum allowed size is 1 MB.", Severity.Error);
+		}
+		catch (Exception ex)
+		{
+			Snackbar.Add("Error uploading image: " + ex.Message, Severity.Error);
+		}
+	}
+	private async Task SaveProfile()
+	{
+		if (user == null) return;
+
+		var updatedUser = new UserDto(user.Id, updatedName!, user.EloRating, avatarData);
+
+		saving = true;
+		await UserSharedService.UpdateUserAsync(updatedUser!);
+		saving = false;
+
+		NavigationManager.NavigateTo($"/user/name={updatedUser.Name}");
+	}
+}

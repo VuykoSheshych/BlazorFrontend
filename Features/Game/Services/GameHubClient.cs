@@ -65,7 +65,7 @@ public class GameHubClient
 	{
 		await _hubConnection.InvokeAsync("SendMessage", gameId, chatMessage);
 	}
-	public async Task FinishGame(string gameId, string looser)
+	public async Task FinishGame(Guid gameId, string looser)
 	{
 		await _hubConnection.InvokeAsync("FinishGame", gameId, looser);
 	}
