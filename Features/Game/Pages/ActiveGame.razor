@@ -172,7 +172,7 @@ else
 		if (!gameSession.Moves.Any()) return true;
 
 		// Якщо останній хід в грі був за чорними, то хід білих
-		if (gameSession.Moves.Last().PlayerColor == "b") return true;
+		if (gameSession.Moves.Last().PlayerColor == PlayerColor.Black) return true;
 
 		return false; // В усіх інших випадках хід чорних
 	}
@@ -188,7 +188,7 @@ else
 	{
 		if (gameSession == null || gameId == null) return;
 
-		var move = new MoveDto(From: $"{(char)('a' + from.col)}{8 - from.row}", To: $"{(char)('a' + to.col)}{8 - to.row}");
+		var move = new MoveDto(from: $"{(char)('a' + from.col)}{8 - from.row}", to: $"{(char)('a' + to.col)}{8 - to.row}");
 
 		await GameHubClient.MakeMove(gameId, move);
 		selectedSquare = null;
