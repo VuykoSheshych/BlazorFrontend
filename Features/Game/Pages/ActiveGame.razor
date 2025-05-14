@@ -48,6 +48,16 @@
 						StartIcon="@Icons.Material.Filled.Flag" OnClick="() => FinishGame(currentUserName!)">
 						Concede
 					</MudButton>
+
+					<MudStack Spacing="3" Row>
+						<MudTextField @bind-Value="chatMessage" Label="Send message to opponent" Variant="Variant.Outlined">
+						</MudTextField>
+						<MudButton Size="Size.Small" Class="mb-2 mt-2" Variant="Variant.Filled" Color="Color.Primary"
+							OnClick="() => SendMessage()">
+							Send
+						</MudButton>
+					</MudStack>
+
 				</MudPaper>
 			</MudItem>
 
@@ -71,6 +81,7 @@ else
 	private char[,]? chessBoard;
 	private (int row, int col)? selectedSquare;
 	private MoveResultDto? moveResult;
+	private string? chatMessage = string.Empty;
 	protected override async Task OnInitializedAsync()
 	{
 		if (gameId is not null)
@@ -78,6 +89,7 @@ else
 			GameHubClient.OnGameStateReceived += OnGameStateReceived;
 			GameHubClient.OnMoveRecieved += OnMoveRecieved;
 			GameHubClient.OnGameFinished += OnGameFinished;
+			GameHubClient.OnMessageReceived += OnMessageReceived;
 
 			await GameHubClient.Connect();
 			currentUserName = await UserSharedService.GetCurrentUserNameAsync();
@@ -138,6 +150,15 @@ else
 
 		StateHasChanged();
 	}
+	private void OnMessageReceived(ChatMessageDto message)
+	{
+		Snackbar.Add($"{message.Author}: {message.Text}", Severity.Info, config =>
+		{
+			config.Icon = Icons.Material.Filled.Message;
+			config.IconColor = Color.Warning;
+			config.IconSize = Size.Medium;
+		});
+	}
 	private async void OnMoveRecieved(MoveResultDto moveResultDto)
 	{
 		moveResult = moveResultDto;
@@ -194,9 +215,10 @@ else
 		selectedSquare = null;
 		StateHasChanged();
 	}
-	private async Task SendMessage(ChatMessageDto message)
+	private async Task SendMessage()
 	{
-		await GameHubClient.SendMessage(gameId, message);
+		if (string.IsNullOrWhiteSpace(chatMessage)) return;
+		await GameHubClient.SendMessage(gameId, new ChatMessageDto(currentUserName, chatMessage));
 	}
 	private async Task FinishGame(string looser)
 	{

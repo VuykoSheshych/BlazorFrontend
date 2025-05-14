@@ -11,6 +11,7 @@ public class GameHubClient
 	public event Action<string>? OnGameFound;
 	public event Action<MoveResultDto>? OnMoveRecieved;
 	public event Func<string, Task>? OnGameFinished;
+	public event Action<ChatMessageDto>? OnMessageReceived;
 	public GameHubClient(IHttpClientFactory httpClientFactory)
 	{
 		_hubConnection = new HubConnectionBuilder()
@@ -19,6 +20,7 @@ public class GameHubClient
 			.Build();
 
 		_hubConnection.On<MoveResultDto>("ReceiveMove", moveResult => OnMoveRecieved?.Invoke(moveResult));
+		_hubConnection.On<ChatMessageDto>("ReceiveMessage", chatMessage => OnMessageReceived?.Invoke(chatMessage));
 		_hubConnection.On<string>("GameFound", gameId => OnGameFound?.Invoke(gameId));
 		_hubConnection.On<string>("ReceiveGameState", async json =>
 		{
