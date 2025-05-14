@@ -21,8 +21,8 @@
 
 		@if (authState is not null && authState.User.Identity?.IsAuthenticated == true)
 		{
-			<MudText Class="mr-4">@authState.User.Identity.Name</MudText>
-			<MudIconButton Icon="@Icons.Material.Outlined.Photo" Color="Color.Inherit" OnClick="OpenProfile" />
+			<MudText>Hello, @authState.User.Identity.Name!</MudText>
+			<MudIconButton Icon="@Icons.Material.Outlined.Settings" Color="Color.Inherit" OnClick="OpenProfile" />
 			<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
 		}
 		else
