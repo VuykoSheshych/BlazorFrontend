@@ -43,7 +43,9 @@
 				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Main page</MudNavLink>
 				<MudNavLink Href="/game/search" Icon="@Icons.Material.Filled.VideogameAsset">Play</MudNavLink>
 				<MudNavLink Href="/games" Icon="@Icons.Material.Filled.List">Games list</MudNavLink>
-				<MudNavLink Href="/about" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+				<MudNavLink Href="/about-uk" Icon="@Icons.Material.Filled.Info">About(uk)</MudNavLink>
+				<MudNavLink Href="/about-ru" Icon="@Icons.Material.Filled.Info">About(ru)</MudNavLink>
+				<MudNavLink Href="/feedback" Icon="@Icons.Material.Filled.Feedback">Feedback</MudNavLink>
 			</MudNavMenu>
 		</MudDrawer>
 	}
@@ -84,7 +86,7 @@
 	}
 	private async Task Logout()
 	{
-		await AuthService.LogoutAsync();
+		await AuthProvider.Logout();
 		NavigationManager.NavigateTo("/");
 	}
 }

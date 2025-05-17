@@ -1,0 +1,78 @@
+@page "/feedback"
+
+@inject IHttpClientFactory HttpClientFactory
+@inject CustomStateProvider AuthProvider
+@inject ISnackbar Snackbar
+
+<PageTitle>Feedback</PageTitle>
+
+<MudPaper Class="p-6 pa-4 mx-auto max-w-screen-md" Elevation="3">
+	@if (feedbacks == null)
+	{
+		<MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+	}
+	else if (feedbacks.Count == 0)
+	{
+		<MudText>There are no messages yet.</MudText>
+	}
+	else
+	{
+		@foreach (var f in feedbacks)
+		{
+			<MudChat Variant="Variant.Outlined" Color="Color.Secondary" ChatPosition="ChatBubblePosition.Start">
+				<MudChatHeader Name="@f.Author" Time="@f.DateTime.ToString()" />
+				<MudChatBubble>@f.Message</MudChatBubble>
+			</MudChat>
+		}
+	}
+	<MudStack Spacing="3" Row>
+		<MudTextField @bind-Value="newMessage" Label="Send feedback" Variant="Variant.Outlined">
+		</MudTextField>
+		<MudButton Size="Size.Small" Class="mb-2 mt-2" Variant="Variant.Filled" Color="Color.Primary"
+			OnClick="() => SendFeedback()">
+			Send
+		</MudButton>
+	</MudStack>
+</MudPaper>
+
+@code {
+	private List<Feedback>? feedbacks = [];
+	private string newMessage = string.Empty;
+	private HttpClient? _httpClient;
+	protected override async Task OnInitializedAsync()
+	{
+		_httpClient = HttpClientFactory.CreateClient("UsersAndAuthAPI");
+		await UpdateList();
+	}
+	private async Task UpdateList()
+	{
+		if (_httpClient is not null)
+			feedbacks = await _httpClient.GetFromJsonAsync<List<Feedback>>("api/users/feedbacks");
+	}
+	private async Task SendFeedback()
+	{
+		if (string.IsNullOrWhiteSpace(newMessage)) return;
+
+		var currentUser = await AuthProvider.GetCachedUserAsync();
+
+		if (currentUser == null || !currentUser.IsAuthenticated)
+		{
+			Snackbar.Add("You are not authenticated", Severity.Error);
+			return;
+		}
+
+		var feedback = new Feedback()
+		{
+			Author = currentUser.UserName,
+			Message = newMessage,
+			DateTime = DateTime.UtcNow
+		};
+
+		if (_httpClient is not null)
+			await _httpClient.PostAsJsonAsync<Feedback>("api/users/feedback", feedback);
+
+		newMessage = string.Empty;
+
+		await UpdateList();
+	}
+}

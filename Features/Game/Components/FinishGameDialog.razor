@@ -1,20 +1,23 @@
 @inject NavigationManager NavigationManager
 @inject MudBlazor.IDialogService DialogService
 
-<MudDialog>
-	<TitleContent>The game ended</TitleContent>
+<MudDialog Class="blur dialog-background" TitleClass="blur dialog-background-title"
+	ContentClass="dialog-background-surface py-10" ActionsClass="dialog-background-surface">
 	<DialogContent>
+		<MudAvatar Size="Size.Large">
+			<MudImage Src="@CurrentUserAvatarUrl"></MudImage>
+		</MudAvatar>
 		@if (Looser == CurrentUser)
 		{
-			<MudText Typo="Typo.body1">You lost!</MudText>
+			<MudText Typo="Typo.h3">You lost!</MudText>
 		}
 		else if (Looser == "Draw")
 		{
-			<MudText Typo="Typo.body1">Draw!</MudText>
+			<MudText Typo="Typo.h3">Draw!</MudText>
 		}
 		else
 		{
-			<MudText Typo="Typo.body1">You won!</MudText>
+			<MudText Typo="Typo.h3">You won!</MudText>
 		}
 	</DialogContent>
 
@@ -23,10 +26,31 @@
 	</DialogActions>
 </MudDialog>
 
+<style>
+	.blur {
+		backdrop-filter: blur(10px);
+	}
+
+	.dialog-background {
+		background-color: transparent;
+	}
+
+	.dialog-background-title {
+		background: rgb(from var(--mud-palette-primary) r g b / 50%);
+		color: var(--mud-palette-white);
+	}
+
+	.dialog-background-surface {
+		background: rgb(from var(--mud-palette-surface) r g b / 75%);
+	}
+</style>
+
 @code {
 	[CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
 	[Parameter] public string? Looser { get; set; }
 	[Parameter] public string? CurrentUser { get; set; }
+	[Parameter] public string? CurrentUserAvatarUrl { get; set; }
+
 	private void GoToSearch()
 	{
 		MudDialog?.Close();

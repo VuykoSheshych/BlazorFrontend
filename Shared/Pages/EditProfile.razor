@@ -4,9 +4,7 @@
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
-<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 1200px;">
-	<MudText Typo="Typo.h5" Class="mb-4">Edit profile</MudText>
-
+<MudPaper Class="pa-6 mx-auto mt-4" Style="max-width: 1200px;">
 	@if (isLoading)
 	{
 		<MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
@@ -14,36 +12,39 @@
 	else if (user != null)
 	{
 		<MudGrid>
-			<MudItem xs="12" sm="6">
+			<MudItem xs="12" sm="6" Class="d-flex justify-center align-center">
 				<MudAvatar Size="Size.Large" Class="mud-elevation-4" Style="width: 250px; height: 250px;">
 					<MudImage Src="@avatarDataUrl" />
 				</MudAvatar>
-
-				<MudFileUpload T="IBrowserFile" Accept=".png, .jpg, .jpeg" MaximumFileCount="1"
-					FilesChanged="UploadPicture">
-					<ActivatorContent>
-						<MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Image" Label="Load picture" />
-					</ActivatorContent>
-				</MudFileUpload>
 			</MudItem>
 
 			<MudItem xs="12" sm="6">
 				<MudTextField @bind-Value="updatedName" Label="Name" Required="true" />
+				<MudStack Row Class="mt-4">
+					<MudFileUpload T="IBrowserFile" Accept=".png, .jpg, .jpeg" MaximumFileCount="1"
+						FilesChanged="UploadPicture">
+						<ActivatorContent>
+							<MudButton StartIcon="@Icons.Material.Filled.Image" Color="Color.Primary"
+								Variant="Variant.Filled">
+								Load picture
+							</MudButton>
+						</ActivatorContent>
+					</MudFileUpload>
+					<MudButton OnClick="SaveProfile" Color="Color.Primary" Variant="Variant.Filled" Disabled="saving">
+						@if (saving)
+						{
+							<MudText>Saving...</MudText>
+							<MudProgressCircular Size="Size.Small" Indeterminate="true" Class="ml-2" />
+						}
+						else
+						{
+							<MudText>Save</MudText>
+							<MudIcon Icon="@Icons.Material.Filled.Save" Class="ml-2" />
+						}
+					</MudButton>
+				</MudStack>
 			</MudItem>
 		</MudGrid>
-
-		<MudButton OnClick="SaveProfile" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4" Disabled="saving">
-			@if (saving)
-			{
-				<MudText Color="Color.Secondary">Saving...</MudText>
-				<MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-			}
-			else
-			{
-				<MudText Color="Color.Secondary">Save</MudText>
-				<MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" />
-			}
-		</MudButton>
 	}
 </MudPaper>
 

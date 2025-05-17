@@ -178,9 +178,15 @@ else
 		{
 			CloseOnEscapeKey = false,
 			BackdropClick = false,
-			Position = DialogPosition.TopCenter
+			Position = DialogPosition.TopCenter,
+			FullWidth = true
 		};
-		var parameters = new DialogParameters { ["Looser"] = looser, ["CurrentUser"] = currentUserName };
+		var parameters = new DialogParameters
+		{
+			["Looser"] = looser,
+			["CurrentUser"] = currentUserName,
+			["CurrentUserAvatarUrl"] = AvatarService.GetAvatarUrl(GetOpponentPlayer()?.Avatar)
+		};
 
 		return DialogService.ShowAsync<FinishGameDialog>("The game ended", parameters, options);
 	}
@@ -219,6 +225,7 @@ else
 	{
 		if (string.IsNullOrWhiteSpace(chatMessage)) return;
 		await GameHubClient.SendMessage(gameId, new ChatMessageDto(currentUserName, chatMessage));
+		chatMessage = string.Empty;
 	}
 	private async Task FinishGame(string looser)
 	{

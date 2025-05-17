@@ -31,8 +31,12 @@
 				<MudTd>
 					<MudLink Href="@($"/games/{context.Id}")">@context.Id</MudLink>
 				</MudTd>
-				<MudTd>@context.PlayerWhite</MudTd>
-				<MudTd>@context.PlayerBlack</MudTd>
+				<MudTd>
+					<MudLink Href="@($"/user/name={context.PlayerWhite}")">@context.PlayerWhite</MudLink>
+				</MudTd>
+				<MudTd>
+					<MudLink Href="@($"/user/name={context.PlayerBlack}")">@context.PlayerBlack</MudLink>
+				</MudTd>
 				<MudTd>@(context.Result == GameResult.WhiteWin ? "1 0" : context.Result == GameResult.WhiteWin ? "0 1" : "½ ½")</MudTd>
 				<MudTd>@context.Started.ToString("yyyy-MM-dd HH:mm")</MudTd>
 				<MudTd>@context.Finished.ToString("yyyy-MM-dd HH:mm")</MudTd>
