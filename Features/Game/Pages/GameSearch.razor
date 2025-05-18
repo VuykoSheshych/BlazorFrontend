@@ -68,15 +68,18 @@
 		}
 	}
 
-	private void OnGameFound(string gameId)
+	private async Task OnGameFound(string gameId)
 	{
-		isSearching = false;
-		StateHasChanged();
+		await StopGameSearch();
 		NavigationManager.NavigateTo($"/game/active/{gameId}");
 	}
 
 	public void Dispose()
 	{
+		if (isSearching && !string.IsNullOrEmpty(currentUser))
+		{
+			_ = StopGameSearch();
+		}
 		GameHubClient.OnGameFound -= OnGameFound;
 	}
 }
